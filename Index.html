@@ -1,0 +1,3867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediCare — Multispeciality Hospital & Online OP Booking</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230C7365'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ============ Design tokens ============ */
+:root{
+  --paper:#F7F6F1; --card:#FFFFFF; --ink:#182220; --ink2:#57685F; --ink3:#8B9A90;
+  --line:#E5E7DF; --line2:#D3D9CC;
+  --teal:#0C7365; --teal-strong:#095A4F; --on-teal:#FFFFFF;
+  --teal-soft:#E2F1EC; --teal-softer:#F0F6F3;
+  --amber:#A05512; --blue:#2F6B8F; --green:#1F7A4D; --red:#B03A31; --gray:#6B7280;
+  --soft-book:#E2F1EC; --soft-wait:#FAF0DE; --soft-consult:#E5EFF5; --soft-done:#E3F2E8; --soft-cancel:#F9E9E7; --soft-noshow:#EDEFF0;
+  --shadow:0 1px 2px rgba(24,34,32,.05),0 10px 28px -14px rgba(24,34,32,.16);
+  --shadow-sm:0 1px 2px rgba(24,34,32,.06);
+  --r:14px; --rs:9px;
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --paper:#0C1311; --card:#131C19; --ink:#E7EDE9; --ink2:#9DB0A7; --ink3:#6E8177;
+  --line:#22322B; --line2:#2D4038;
+  --teal:#3FBFA8; --teal-strong:#63D6C1; --on-teal:#07211C;
+  --teal-soft:#12332C; --teal-softer:#0F2620;
+  --amber:#D9A05B; --blue:#7FB2D4; --green:#6FC79A; --red:#E08A81; --gray:#9CA3AF;
+  --soft-book:#12332C; --soft-wait:#332613; --soft-consult:#14293A; --soft-done:#12291D; --soft-cancel:#331917; --soft-noshow:#22262A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 14px 34px -16px rgba(0,0,0,.55);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Instrument Sans',sans-serif;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.serif{font-family:'Fraunces',serif;font-weight:600;line-height:1.12;letter-spacing:-.01em}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+svg.lucide{vertical-align:-2px}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+::selection{background:var(--teal);color:var(--on-teal)}
+
+/* ============ Primitives ============ */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;font-weight:600;font-size:14px;border:1px solid transparent;transition:.18s;white-space:nowrap}
+.btn-p{background:var(--teal);color:var(--on-teal)} .btn-p:hover{background:var(--teal-strong);transform:translateY(-1px)}
+.btn-g{border-color:var(--line2);background:var(--card)} .btn-g:hover{border-color:var(--teal);color:var(--teal)}
+.btn-t{color:var(--teal);padding:10px 8px} .btn-t:hover{gap:12px}
+.btn-d{background:var(--soft-cancel);color:var(--red)} .btn-d:hover{filter:brightness(.96)}
+.btn.sm,.btn-sm{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.link{color:var(--teal);font-weight:600}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.label{font-size:12.5px;font-weight:600;color:var(--ink2);letter-spacing:.02em;text-transform:uppercase}
+.input{background:var(--card);border:1px solid var(--line2);border-radius:var(--rs);padding:10px 12px;font-size:14.5px;width:100%;transition:border-color .15s}
+.input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+textarea.input{resize:vertical;min-height:76px}
+.err{color:var(--red);font-size:12.5px;display:none}
+.err.show{display:block}
+.hint{font-size:12.5px;color:var(--ink3)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.01em}
+.b-BOOKED{background:var(--soft-book);color:var(--teal)} .b-CHECKED_IN{background:var(--soft-wait);color:var(--amber)}
+.b-IN_CONSULT{background:var(--soft-consult);color:var(--blue)} .b-COMPLETED{background:var(--soft-done);color:var(--green)}
+.b-CANCELLED{background:var(--soft-cancel);color:var(--red)} .b-NO_SHOW{background:var(--soft-noshow);color:var(--gray)}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.92em;letter-spacing:.04em}
+.tag{display:inline-block;padding:2px 9px;border-radius:6px;background:var(--teal-softer);color:var(--teal);font-size:12px;font-weight:600}
+.hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+.muted{color:var(--ink2)} .tiny{font-size:12.5px;color:var(--ink3)}
+.empty{padding:36px 20px;text-align:center;color:var(--ink3)}
+.empty svg{width:34px;height:34px;margin-bottom:10px;opacity:.5}
+.pill-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.pill-tabs button{padding:7px 15px;border-radius:999px;border:1px solid var(--line2);font-size:13.5px;font-weight:600;color:var(--ink2);background:var(--card)}
+.pill-tabs button.on{background:var(--teal);border-color:var(--teal);color:var(--on-teal)}
+.avatar{width:44px;height:44px;border-radius:12px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:16px;flex-shrink:0}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+.tbl th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);padding:11px 14px;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--teal-softer)}
+
+/* ============ Toasts & modal ============ */
+#toasts{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:10px}
+.toast{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-size:14px;font-weight:500;max-width:360px;animation:tin .25s cubic-bezier(.2,.9,.3,1.2)}
+.toast.t-err{background:var(--red);color:#fff}.toast.t-ok{background:var(--teal);color:var(--on-teal)}
+@keyframes tin{from{opacity:0;transform:translateY(10px) scale(.96)}}
+.ovl{position:fixed;inset:0;background:rgba(12,19,17,.5);backdrop-filter:blur(3px);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px;animation:fin .18s}
+@keyframes fin{from{opacity:0}}
+.modal{background:var(--card);border-radius:18px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:26px;box-shadow:var(--shadow);animation:min .22s cubic-bezier(.2,.9,.3,1.1)}
+@keyframes min{from{opacity:0;transform:translateY(14px) scale(.98)}}
+.modal h3{font-size:21px;margin-bottom:4px}
+.m-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.x{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--ink3)}
+.x:hover{background:var(--teal-softer);color:var(--ink)}
+
+/* ============ Public chrome ============ */
+.pub-head{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.pub-nav{max-width:1160px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:28px}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:700;font-size:20px}
+.brand .bmark{width:34px;height:34px;border-radius:10px;background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand small{font-family:'Instrument Sans';font-size:10.5px;font-weight:600;letter-spacing:.16em;color:var(--ink3);display:block;line-height:1}
+.pub-links{display:flex;gap:24px;margin-left:auto;font-size:14.5px;font-weight:500;color:var(--ink2)}
+.pub-links a:hover{color:var(--teal)}
+.pub-links a.on{color:var(--teal)}
+.icon-btn{width:38px;height:38px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line2);color:var(--ink2);background:var(--card);position:relative}
+.icon-btn:hover{color:var(--teal);border-color:var(--teal)}
+.mob-menu{display:none}
+.hero{max-width:1160px;margin:0 auto;padding:64px 24px 40px;display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--teal)}
+.hero h1{font-size:clamp(38px,5vw,58px);margin-bottom:18px}
+.hero h1 em{font-style:italic;font-weight:500;color:var(--teal)}
+.ecg{display:block;margin:20px 0 4px}
+.ecg path{stroke:var(--teal);stroke-width:2;fill:none;stroke-dasharray:340;animation:ecg 3.2s linear infinite}
+@keyframes ecg{from{stroke-dashoffset:340}to{stroke-dashoffset:-340}}
+.stat-strip{display:flex;gap:0;margin-top:34px;border-top:1px solid var(--line);padding-top:22px;flex-wrap:wrap}
+.stat-strip>div{padding-right:34px;margin-right:34px;border-right:1px solid var(--line)}
+.stat-strip>div:last-child{border:none;margin:0;padding:0}
+.stat-n{font-family:'Fraunces',serif;font-size:27px;font-weight:600}
+.desk{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px}
+.desk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.live-dot{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--teal);letter-spacing:.08em}
+.live-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--teal-soft)}50%{box-shadow:0 0 0 6px var(--teal-soft)}}
+.sect{max-width:1160px;margin:0 auto;padding:72px 24px}
+.sect-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:36px;gap:20px;flex-wrap:wrap}
+.sect-head h2{font-size:clamp(26px,3.4vw,38px)}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.dept-list{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.dept-row{display:flex;align-items:center;gap:18px;padding:22px 18px;border-bottom:1px solid var(--line);transition:.18s;position:relative}
+.dept-row:nth-child(odd){border-right:1px solid var(--line);padding-right:34px}
+.dept-row:hover{background:var(--teal-softer)}
+.dept-row .num{font-family:'Fraunces',serif;font-size:15px;color:var(--ink3);width:26px}
+.dept-row .di{width:44px;height:44px;border-radius:12px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dept-row h3{font-size:18px;font-weight:600}
+.dept-row .go{margin-left:auto;color:var(--teal);opacity:0;transform:translateX(-6px);transition:.18s;font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.dept-row:hover .go{opacity:1;transform:none}
+.roster{border-top:1px solid var(--line)}
+.doc-row{display:flex;align-items:center;gap:18px;padding:20px 10px;border-bottom:1px solid var(--line);transition:.15s}
+.doc-row:hover{background:var(--teal-softer)}
+.doc-row .avatar{width:52px;height:52px;border-radius:14px;font-size:18px}
+.doc-row h3{font-size:18px}
+.doc-row .fee{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line)}
+.step{padding:26px 22px 6px;border-right:1px dashed var(--line2);position:relative}
+.step:last-child{border:none}
+.step .sn{font-family:'Fraunces',serif;font-size:44px;color:var(--teal);opacity:.9;font-weight:500}
+.step h3{font-size:17px;margin:8px 0 6px}
+.quote-big{font-family:'Fraunces',serif;font-size:clamp(22px,3vw,30px);font-style:italic;font-weight:500;line-height:1.35;max-width:820px}
+.quote-attr{margin-top:18px;display:flex;align-items:center;gap:12px}
+.quotes-sm{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:40px;padding-top:36px;border-top:1px solid var(--line)}
+.pub-foot{border-top:1px solid var(--line);margin-top:30px;background:var(--card)}
+.foot-grid{max-width:1160px;margin:0 auto;padding:52px 24px 30px;display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:44px}
+.hours-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line2);font-size:13.5px}
+.foot-bottom{max-width:1160px;margin:0 auto;padding:18px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3)}
+
+/* ============ Booking wizard ============ */
+.stepper{display:flex;gap:0;margin-bottom:28px;border:1px solid var(--line);border-radius:999px;overflow:hidden;width:max-content;max-width:100%}
+.stepper span{padding:8px 18px;font-size:13px;font-weight:600;color:var(--ink3);border-right:1px solid var(--line);display:flex;gap:8px;align-items:center;white-space:nowrap}
+.stepper span:last-child{border:none}
+.stepper span.on{background:var(--teal);color:var(--on-teal)}
+.stepper span.done{color:var(--teal)}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opt{display:flex;align-items:center;gap:14px;padding:15px 16px;border:1px solid var(--line2);border-radius:var(--r);background:var(--card);cursor:pointer;transition:.15s;text-align:left;width:100%}
+.opt:hover{border-color:var(--teal)}
+.opt.on{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+.datestrip{display:flex;gap:9px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px}
+.dchip{min-width:82px;padding:11px 8px;border:1px solid var(--line2);border-radius:12px;background:var(--card);text-align:center;transition:.15s;flex-shrink:0}
+.dchip:hover{border-color:var(--teal)}
+.dchip.on{background:var(--teal);color:var(--on-teal);border-color:var(--teal)}
+.dchip .dw{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.dchip .dd{font-family:'Fraunces',serif;font-size:21px;font-weight:600}
+.dchip .dc{font-size:11px;margin-top:2px}
+.dchip:disabled{opacity:.4;cursor:not-allowed}
+.slotgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:9px}
+.slot{padding:9px 6px;border-radius:10px;border:1.5px solid var(--line2);text-align:center;font-size:13.5px;font-weight:600;background:var(--card);transition:.13s}
+.slot:hover:not(:disabled){border-color:var(--teal);color:var(--teal)}
+.slot.on{background:var(--teal);color:var(--on-teal);border-color:var(--teal)}
+.slot:disabled{opacity:.4;text-decoration:line-through;cursor:not-allowed}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:12.5px;color:var(--ink2)}
+.legend i{width:12px;height:12px;border-radius:4px;display:inline-block;margin-right:6px;vertical-align:-1px;border:1.5px solid var(--line2)}
+
+/* ============ App shell ============ */
+.shell{display:grid;grid-template-columns:246px 1fr;min-height:100vh}
+.side{background:var(--card);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
+.side .brand{padding:4px 8px 18px}
+.snav{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;font-size:14px;font-weight:600;color:var(--ink2);transition:.14s;width:100%;text-align:left}
+.snav:hover{background:var(--teal-softer);color:var(--ink)}
+.snav.on{background:var(--teal);color:var(--on-teal)}
+.snav .lucide{width:17px;height:17px}
+.side-foot{margin-top:auto;padding:12px 8px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.main{padding:0 30px 60px;min-width:0}
+.topbar{position:sticky;top:0;z-index:90;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:26px}
+.topbar h1{font-size:22px}
+.burger{display:none}
+.npanel{position:absolute;right:0;top:48px;width:340px;max-height:430px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:8px;z-index:120}
+.nitem{display:flex;gap:11px;padding:11px 12px;border-radius:11px;align-items:flex-start}
+.nitem:hover{background:var(--teal-softer)}
+.nitem.unread{background:var(--teal-softer)}
+.nitem .nd{width:8px;height:8px;border-radius:50%;background:var(--teal);margin-top:6px;flex-shrink:0}
+.nitem.read .nd{background:var(--line2)}
+.nbadge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.appt-card{padding:18px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);display:flex;gap:16px;align-items:flex-start}
+.appt-card.hl{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft),var(--shadow-sm)}
+.timeblock{text-align:center;min-width:66px;padding:10px 6px;border-radius:12px;background:var(--teal-softer);flex-shrink:0}
+.timeblock .tt{font-family:'Fraunces',serif;font-size:18px;font-weight:600}
+.stat-tile{padding:18px 20px;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+.stat-tile .sv{font-family:'Fraunces',serif;font-size:31px;font-weight:600;margin-top:2px}
+.stat-tile .sl{font-size:12.5px;color:var(--ink2);font-weight:600;letter-spacing:.03em;text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.bar{height:7px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:5px}
+.qlist .qrow{display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.qlist .qrow:last-child{border:none}
+.qnum{width:40px;height:40px;border-radius:12px;background:var(--teal);color:var(--on-teal);font-family:'Fraunces',serif;font-size:18px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end}
+.filters .field{margin:0;min-width:130px;flex:1}
+.filters .field.grow{flex:2}
+.pager{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:18px;font-size:13.5px}
+.pager button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center}
+.pager button:disabled{opacity:.35}
+.weekgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.wday{border:1px solid var(--line);border-radius:12px;background:var(--card);min-height:150px;padding:10px}
+.wday.today{border-color:var(--teal)}
+.wday h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink3);margin-bottom:8px}
+.wchip{font-size:11.5px;padding:5px 8px;border-radius:8px;margin-bottom:6px;font-weight:600}
+.ticket{background:var(--card);border:1px solid var(--line2);border-radius:20px;max-width:560px;margin:0 auto;overflow:hidden;box-shadow:var(--shadow)}
+.ticket-head{background:var(--teal);color:var(--on-teal);padding:24px;display:flex;justify-content:space-between;align-items:center}
+.ticket-body{padding:26px}
+.tk-row{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px dashed var(--line2);font-size:14px}
+.tk-row .k{color:var(--ink3)}
+.codebars{display:flex;align-items:flex-end;gap:2px;height:38px;margin-top:18px}
+.codebars i{background:var(--ink);width:3px;border-radius:1px}
+.checkline{display:flex;gap:10px;padding:9px 0;font-size:13.5px;color:var(--ink2)}
+.checkline .ok{color:var(--green)}
+.util-row{display:flex;align-items:center;gap:12px;padding:9px 0}
+.util-row .bar{flex:1}
+.demo-note{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);border:1px dashed var(--line2);padding:5px 12px;border-radius:999px}
+
+/* ============ Responsive ============ */
+@media (max-width:1000px){
+  .hero{grid-template-columns:1fr;gap:36px;padding-top:44px}
+  .steps{grid-template-columns:1fr 1fr}
+  .step{border-bottom:1px dashed var(--line2)}
+  .dept-list{grid-template-columns:1fr}.dept-row:nth-child(odd){border-right:none;padding-right:18px}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .shell{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:0;z-index:150;width:262px;transform:translateX(-105%);transition:.25s;box-shadow:var(--shadow)}
+  .shell.sopen .side{transform:none}
+  .burger{display:inline-flex}
+  .pub-links{display:none}.mob-menu{display:inline-flex}
+  .grid2,.grid3,.quotes-sm{grid-template-columns:1fr}
+  .main{padding:0 16px 50px}
+}
+@media (max-width:600px){
+  .opt-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr}
+  .stat-strip>div{padding-right:20px;margin-right:20px}
+}
+@media print{
+  body *{visibility:hidden}
+  .ticket,.ticket *{visibility:visible}
+  .ticket{position:fixed;top:0;left:0;width:100%;box-shadow:none;border-radius:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts"></div>
+<div id="modal-root"></div>
+
+<script>
+"use strict";
+/* ================================================================
+   MediCare — single-file application
+   Layers: utils → store (persistent "database") → domain engine
+           (slots / booking / queue) → router → views → actions
+   ================================================================ */
+
+/* ---------- 1. Utilities ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,12);
+const REF_CHARS="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function newRef(){const b=new Uint8Array(8);crypto.getRandomValues(b);const s=Array.from(b).map(x=>REF_CHARS[x%REF_CHARS.length]).join("");return `MC-${s.slice(0,4)}-${s.slice(4)}`;}
+const pad=n=>String(n).padStart(2,"0");
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()};
+function addDaysStr(ds,n){const [y,m,d]=ds.split("-").map(Number);const dt=new Date(y,m-1,d+n);return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`}
+function dowOf(ds){const [y,m,d]=ds.split("-").map(Number);return new Date(y,m-1,d).getDay()}
+const toMin=t=>{const[a,b]=t.split(":").map(Number);return a*60+b};
+const fromMin=m=>`${pad(Math.floor(m/60))}:${pad(m%60)}`;
+const fmt12=t=>{let[h,m]=t.split(":").map(Number);const ap=h>=12?"PM":"AM";h=h%12||12;return `${h}:${pad(m)} ${ap}`};
+const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function dObj(ds){const[y,m,d]=ds.split("-").map(Number);return new Date(y,m-1,d)}
+const fmtDate=ds=>{const d=dObj(ds);return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONS[d.getMonth()]}`};
+const fmtDateLong=ds=>{const d=dObj(ds);return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONS[d.getMonth()]} ${d.getFullYear()}`};
+const money=n=>"₹"+Number(n).toLocaleString("en-IN");
+const timeAgo=ts=>{const s=(Date.now()-ts)/1e3;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago"};
+function refreshIcons(){if(window.lucide)lucide.createIcons()}
+function toast(msg,type="ok"){const t=document.createElement("div");t.className="toast t-"+type;t.innerHTML=`<i data-lucide="${type==="err"?"alert-circle":type==="info"?"info":"check-circle-2"}"></i><span>${esc(msg)}</span>`;$("#toasts").appendChild(t);refreshIcons();setTimeout(()=>{t.style.opacity="0";t.style.transition=".3s";setTimeout(()=>t.remove(),320)},3600);}
+function openModal(html){$("#modal-root").innerHTML=`<div class="ovl" data-ovl><div class="modal">${html}</div></div>`;refreshIcons();$(".ovl").addEventListener("mousedown",e=>{if(e.target.dataset.ovl!==undefined)closeModal()});}
+function closeModal(){$("#modal-root").innerHTML=""}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+async function hashPw(pw,salt){
+  if(crypto.subtle){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+"::"+pw));return[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");}
+  let h=2166136261;for(const c of salt+"::"+pw){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return("fnv"+(h>>>0).toString(16));
+}
+
+/* ---------- 2. Store: persistent browser "database" ---------- */
+const DB_KEY="medicare.db.v1";
+let db=null;
+const save=()=>localStorage.setItem(DB_KEY,JSON.stringify(db));
+const ACTIVE=["BOOKED","CHECKED_IN","IN_CONSULT"];
+const STATUS_META={BOOKED:["Booked","b-BOOKED"],CHECKED_IN:["Checked in","b-CHECKED_IN"],IN_CONSULT:["In consultation","b-IN_CONSULT"],COMPLETED:["Completed","b-COMPLETED"],CANCELLED:["Cancelled","b-CANCELLED"],NO_SHOW:["No-show","b-NO_SHOW"]};
+const badge=st=>`<span class="badge ${STATUS_META[st][1]}">${STATUS_META[st][0]}</span>`;
+const userById=id=>db.users.find(u=>u.id===id);
+
+
+const docById = id => {
+  const localDoctor = db.doctors.find(d => d.id === id);
+
+  if (localDoctor) return localDoctor;
+
+  const mongoDoctor = (state.mongoPublicDoctors || [])
+    .find(d => d.frontendId === id || d._id === id);
+
+  if (!mongoDoctor) return undefined;
+
+  return {
+    ...mongoDoctor,
+    id: mongoDoctor.frontendId || mongoDoctor._id,
+    userId: mongoDoctor.userId || mongoDoctor.user?._id || "",
+    deptId: mongoDoctor.departmentId,
+    quals: mongoDoctor.qualification || "General Medicine",
+    exp: mongoDoctor.experience ?? 0,
+    bio: mongoDoctor.bio || "",
+    fee: mongoDoctor.fee || 0
+  };
+};
+
+const deptById = id => db.departments.find(d => d.id === id);
+const apById=id=>db.appointments.find(a=>a.id===id);
+function me(){return db.session?userById(db.session.uid):null}
+function audit(action,detail,actor){db.audit.unshift({ts:Date.now(),actor:actor||me()?.name||"system",action,detail});db.audit=db.audit.slice(0,400);}
+function notify(userId,type,title,body){db.notifications.unshift({id:uid(),userId,type,title,body,ts:Date.now(),read:false});}
+
+/* ---------- 3. Domain engine (the "server logic") ---------- */
+function getSettings(){return db.settings}
+/* Pure slot calculator — the single source of truth. excludeId lets a
+   reschedule recompute availability while ignoring the appointment being moved. */
+function slotsFor(doc,dateStr,excludeId){
+  const s=getSettings(),slot=s.slotMins,dow=dowOf(dateStr);
+  if((doc.leave||[]).includes(dateStr))return{closed:"Doctor on leave"};
+  const shifts=(doc.shifts&&doc.shifts[dow])||[];
+  if(!shifts.length)return{closed:"Weekly off"};
+  const isToday=dateStr===todayStr(),lead=nowMin()+30;
+  const booked=db.appointments.filter(a=>a.doctorId===doc.id&&a.date===dateStr&&ACTIVE.includes(a.status)&&a.id!==excludeId);
+  const out=[];
+  for(const[ws,we]of shifts){
+    for(let t=ws;t+slot<=we;t+=slot){
+      const clash=booked.some(a=>toMin(a.start)<t+slot&&toMin(a.end)>t);
+      const past=isToday&&t<lead;
+      out.push({start:fromMin(t),end:fromMin(t+slot),available:!clash&&!past});
+    }
+  }
+  return{slots:out};
+}
+function nextAvailable(doc){
+  const s=getSettings();
+  for(let i=0;i<=s.windowDays;i++){
+    const ds=addDaysStr(todayStr(),i),r=slotsFor(doc,ds);
+    if(r.slots&&r.slots.some(x=>x.available))return{date:ds,slots:r.slots.filter(x=>x.available).slice(0,3)};
+  }
+  return null;
+}
+/* Transactional create: re-validates everything at "write time" — the
+   frontend slot check is never trusted on its own. */
+function createBooking(o){
+  const doc=docById(o.doctorId);
+  if(!doc)throw"Doctor not found";
+  if(o.date<todayStr())throw"Cannot book a date in the past";
+  if(o.date>addDaysStr(todayStr(),getSettings().windowDays))throw"Date is outside the booking window";
+  const r=slotsFor(doc,o.date);
+  if(r.closed)throw"Doctor unavailable — "+r.closed.toLowerCase();
+  const slot=(r.slots||[]).find(x=>x.start===o.start);
+  if(!slot)throw"That time is not part of the doctor's schedule";
+  if(!slot.available)throw"That slot was just taken — please pick another";
+  const appt={id:uid(),ref:newRef(),patientId:o.patientId,doctorId:doc.id,deptId:doc.deptId,date:o.date,start:o.start,end:slot.end,
+    type:o.type||"New consultation",source:o.source||"online",status:"BOOKED",queue:null,fee:doc.fee,reason:o.reason||"",note:"",
+    createdAt:Date.now(),checkinAt:null,history:[{ts:Date.now(),status:"BOOKED",by:o.actor||"patient"}]};
+  db.appointments.push(appt);
+  const pat=userById(o.patientId);
+  notify(o.patientId,"booking","Appointment confirmed",`${doc.name} · ${fmtDate(appt.date)} at ${fmt12(appt.start)} · Ref ${appt.ref}`);
+  if(doc.userId)notify(doc.userId,"booking","New appointment booked",`${pat?.name||"A patient"} · ${fmtDate(appt.date)} ${fmt12(appt.start)}`);
+  audit("appointment.book",`${appt.ref} · ${doc.name} · ${appt.date} ${appt.start}`,o.actor);
+  return appt;
+}
+function cancelAppt(id,actor){
+  const a=apById(id);if(!a)throw"Appointment not found";
+  if(!["BOOKED","CHECKED_IN"].includes(a.status))throw"Only active appointments can be cancelled";
+  if(a.date===todayStr()&&toMin(a.start)-nowMin()<getSettings().cutoffHours*60)
+    throw`Cancellations close ${getSettings().cutoffHours}h before the slot — please contact reception`;
+  a.status="CANCELLED";a.history.push({ts:Date.now(),status:"CANCELLED",by:actor});
+  const doc=docById(a.doctorId);
+  notify(a.patientId,"cancel","Appointment cancelled",`${doc.name} · ${fmtDate(a.date)} ${fmt12(a.start)} · Ref ${a.ref}`);
+  if(doc.userId)notify(doc.userId,"cancel","Appointment cancelled",`${fmtDate(a.date)} ${fmt12(a.start)} — slot released`);
+  audit("appointment.cancel",a.ref,actor);save();
+}
+function rescheduleAppt(id,dateStr,start,actor){
+  const a=apById(id);if(!a)throw"Appointment not found";
+  if(a.status!=="BOOKED")throw"Only booked appointments can be rescheduled";
+  if(a.date===todayStr()&&toMin(a.start)-nowMin()<getSettings().cutoffHours*60)
+    throw`Rescheduling closes ${getSettings().cutoffHours}h before the slot`;
+  const doc=docById(a.doctorId);
+  const r=slotsFor(doc,dateStr,a.id); // exclude self from the clash check
+  if(r.closed)throw"Doctor unavailable — "+r.closed.toLowerCase();
+  const slot=(r.slots||[]).find(x=>x.start===start);
+  if(!slot)throw"Invalid slot";if(!slot.available)throw"That slot was just taken — pick another";
+  const old=`${fmtDate(a.date)} ${fmt12(a.start)}`;
+  a.date=dateStr;a.start=start;a.end=slot.end;a.queue=null;
+  a.history.push({ts:Date.now(),status:"BOOKED",by:actor,note:"Rescheduled from "+old});
+  notify(a.patientId,"reschedule","Appointment rescheduled",`${doc.name}: now ${fmtDate(a.date)} at ${fmt12(a.start)} (was ${old})`);
+  if(doc.userId)notify(doc.userId,"reschedule","Appointment rescheduled",`${fmtDate(a.date)} ${fmt12(a.start)}`);
+  audit("appointment.reschedule",`${a.ref} → ${a.date} ${a.start}`,actor);save();
+}
+function checkIn(id,actor){
+  const a=apById(id);if(!a)throw"Appointment not found";
+  if(a.status!=="BOOKED")throw"Only booked appointments can be checked in";
+  if(a.date!==todayStr())throw"Check-in opens on the appointment day";
+  const qs=db.appointments.filter(x=>x.doctorId===a.doctorId&&x.date===a.date&&["CHECKED_IN","IN_CONSULT"].includes(x.status)).map(x=>x.queue||0);
+  a.queue=(qs.length?Math.max(...qs):0)+1;a.status="CHECKED_IN";a.checkinAt=Date.now();
+  a.history.push({ts:Date.now(),status:"CHECKED_IN",by:actor,note:"Queue #"+a.queue});
+  notify(a.patientId,"queue","You're in the queue",`Token #${a.queue} · ${docById(a.doctorId).name} · ${fmt12(a.start)}`);
+  audit("appointment.checkin",`${a.ref} → queue #${a.queue}`,actor);save();
+}
+function setStatus(id,next,actor){
+  const a=apById(id);if(!a)throw"Appointment not found";
+  const ok={CHECKED_IN:["BOOKED"],IN_CONSULT:["CHECKED_IN"],COMPLETED:["IN_CONSULT","CHECKED_IN"],NO_SHOW:["BOOKED","CHECKED_IN"]};
+  if(!(ok[next]||[]).includes(a.status))throw`Cannot move from ${STATUS_META[a.status][0]} to ${STATUS_META[next][0]}`;
+  a.status=next;a.history.push({ts:Date.now(),status:next,by:actor});
+  notify(a.patientId,"status",`Appointment ${STATUS_META[next][0].toLowerCase()}`,`${docById(a.doctorId).name} · ${fmtDate(a.date)} ${fmt12(a.start)} · Ref ${a.ref}`);
+  audit("appointment.status",`${a.ref} → ${next}`,actor);save();
+}
+function weekDates(){const t=new Date();const mon=new Date(t.getFullYear(),t.getMonth(),t.getDate()-((t.getDay()+6)%7));return Array.from({length:7},(_,i)=>addDaysStr(todayStr(),i-((t.getDay()+6)%7)))}
+
+/* ---------- 4. Seed: demo hospital, always alive relative to today ---------- */
+async function seedDB(){
+  const PW=async p=>hashPw(p,"mc");
+  const U=async(role,name,email,pass,extra={})=>({id:uid(),role,name,email,salt:"mc",hash:await PW(pass),phone:extra.phone||"",...extra});
+  const admin=await U("admin","Dr. Vikram Rao","admin@medicare.dev","Admin@123",{phone:"+91 98400 10001"});
+  const recep=await U("reception","Priya Nair","reception@medicare.dev","Reception@123",{phone:"+91 98400 10002"});
+  const pats=[
+    ["Aarav Sharma","patient@medicare.dev","Patient@123","P-1001","+91 98111 20001",34,"Male"],
+    ["Diya Patel","diya.p@example.com","Patient@123","P-1002","+91 98111 20002",27,"Female"],
+    ["Rohan Verma","rohan.v@example.com","Patient@123","P-1003","+91 98111 20003",45,"Male"],
+    ["Sneha Krishnan","sneha.k@example.com","Patient@123","P-1004","+91 98111 20004",31,"Female"],
+    ["Imran Qureshi","imran.q@example.com","Patient@123","P-1005","+91 98111 20005",52,"Male"],
+    ["Lakshmi Bhat","lakshmi.b@example.com","Patient@123","P-1006","+91 98111 20006",61,"Female"],
+  ];
+  const patUsers=[];for(const[n,e,p,no,ph,ag,g]of pats)patUsers.push(await U("patient",n,e,p,{patientNo:no,phone:ph,age:ag,gender:g}));
+  const docs=[
+    ["d1","Meera Iyer","doctor@medicare.dev","Cardiology","MD, DM (Cardiology)",12,900,"Senior interventional cardiologist with a focus on preventive heart care and non-invasive diagnostics.","m.iyer@medicare.dev"],
+    ["d2","Arjun Nair","arjun.nair@medicare.dev","Pediatrics","MD (Pediatrics)",8,600,"Paediatrician specialising in newborn care, vaccination schedules and childhood asthma.","a.nair@medicare.dev"],
+    ["d3","Kavitha Rao","kavitha.rao@medicare.dev","Dermatology","MD (Dermatology)",10,700,"Clinical dermatologist for acne, eczema, hair fall and cosmetic dermatology consults.","k.rao@medicare.dev"],
+    ["d4","S. Venkatesh","s.venkatesh@medicare.dev","Orthopaedics","MS (Orthopaedics)",15,800,"Orthopaedic surgeon — sports injuries, joint replacement and spine consults.","s.venkat@medicare.dev"],
+    ["d5","Fatima Sheikh","fatima.sheikh@medicare.dev","Neurology","DM (Neurology)",11,1200,"Neurologist covering headache clinics, epilepsy and stroke follow-up care.","f.sheikh@medicare.dev"],
+    ["d6","R. Menon","r.menon@medicare.dev","General Medicine","MD (General Medicine)",18,500,"General physician for fever clinics, diabetes and hypertension management.","r.menon@medicare.dev"],
+    ["d7","Anjali Gupta","anjali.gupta@medicare.dev","Gynaecology","MS (OBG)",9,750,"Obstetrician and gynaecologist — antenatal care, PCOS and wellness consults.","a.gupta@medicare.dev"],
+    ["d8","Thomas Varghese","thomas.v@medicare.dev","ENT","MS (ENT)",7,650,"ENT surgeon for sinus, hearing and voice disorders.","t.varghese@medicare.dev"],
+  ];
+  const depNames=["Cardiology","Pediatrics","Dermatology","Orthopaedics","Neurology","General Medicine","Gynaecology","ENT"];
+  const depIcons=["heart-pulse","baby","sparkles","bone","brain","stethoscope","flower-2","ear"];
+  const depDesc=["Heart health, ECG, echo and preventive cardiology","Child health from newborn to teens","Skin, hair and nail care","Bones, joints and sports injuries","Brain, spine and nerve care","Everyday medicine and chronic care","Women's health at every stage","Ear, nose and throat care"];
+  const departments=depNames.map((n,i)=>({id:"dep"+(i+1),name:n,icon:depIcons[i],desc:depDesc[i]}));
+  const AM=[[540,780],[840,1020]],EV=[[600,840],[960,1140]],MO=[[540,780]];
+  const doctors=docs.map((d,i)=>{
+    const shifts=d[2]==="Orthopaedics"?EV:(i%3===2?MO:AM);
+    const sh={};for(let k=1;k<=6;k++)sh[k]=k===6?[[540,780]]:shifts;sh[0]=[];
+    return{id:d[0],userId:uid(),name:d[1],email:d[8]||d[2],deptId:"dep"+(i+1),quals:d[3],exp:d[4],fee:d[5],bio:d[7],shifts:sh,leave:[],seed:i+3};
+  });
+  doctors.find(d=>d.id==="d1").email="doctor@medicare.dev";
+  const docUsers=[];for(const d of doctors)docUsers.push(await U("doctor",d.name,d.email,"Doctor@123",{phone:"+91 98400 21"+pad(10+doctors.indexOf(d))}));
+  doctors.forEach((d,i)=>d.userId=docUsers[i].id);
+  const leave1=addDaysStr(todayStr(),(11-dowOf(todayStr())+7)%7+2);doctors[4].leave=[leave1,addDaysStr(leave1,7)];
+  const users=[admin,recep,...patUsers,...docUsers];
+  const appointments=[];let seq=0;
+  const mk=(doc,pat,date,start,status,extra={})=>{
+    const slot=getSeedSlotLen();
+    appointments.push({id:uid(),ref:newRef(),patientId:pat.id,doctorId:doc.id,deptId:doc.deptId,date,start,end:fromMin(toMin(start)+slot),
+      type:extra.type||["New consultation","Follow-up"][seq++%2],source:extra.source||(seq%4===0?"walk_in":"online"),status,queue:extra.queue??null,fee:doc.fee,
+      reason:extra.reason||["Fever and fatigue since 3 days","Routine follow-up","Chest discomfort on exertion","Skin rash on forearm","Knee pain after fall","Recurring migraine","Annual health check"][seq%7],
+      note:status==="COMPLETED"?(extra.note||"Advised medication course; review after 1 week. Vitals stable."):"",
+      createdAt:dObj(date).getTime()+9*36e5,checkinAt:extra.checkinAt||null,
+      history:[{ts:dObj(date).getTime(),status:"BOOKED",by:extra.source==="walk_in"?"reception":"patient"},
+        ...(status!=="BOOKED"?[{ts:dObj(date).getTime()+30*6e4,status,by:"reception"}]:[])]});
+  };
+  function getSeedSlotLen(){return 15}
+  const today=todayStr();
+  for(const doc of doctors){
+    const dow=dowOf(today),sh=(doc.shifts[dow]&&doc.shifts[dow][0])||null;
+    if(sh){
+      const s0=sh[0],step=getSeedSlotLen();
+      const t1=fromMin(s0),t2=fromMin(s0+step),t3=fromMin(s0+step*2),t4=fromMin(s0+step*3),t5=fromMin(s0+step*4),t6=fromMin(s0+step*6),t7=fromMin(s0+step*7);
+      mk(doc,patUsers[seq%6],today,t1,"COMPLETED");
+      mk(doc,patUsers[(seq+1)%6],today,t2,"COMPLETED");
+      mk(doc,patUsers[(seq+2)%6],today,t3,"IN_CONSULT",{queue:1,checkinAt:Date.now()-14*6e4});
+      mk(doc,patUsers[(seq+3)%6],today,t4,"CHECKED_IN",{queue:2,checkinAt:Date.now()-9*6e4});
+      mk(doc,patUsers[(seq+4)%6],today,t5,"CHECKED_IN",{queue:3,checkinAt:Date.now()-3*6e4});
+      mk(doc,patUsers[(seq+5)%6],today,t6,"BOOKED");
+      mk(doc,patUsers[seq%6],today,t7,"BOOKED");
+    }
+    for(let back=1;back<=5;back++){
+      const ds=addDaysStr(today,-back),dd=dowOf(ds);const sh2=(doc.shifts[dd]&&doc.shifts[dd][0]);
+      if(!sh2)continue;
+      const r=[["COMPLETED"],["COMPLETED"],["COMPLETED"],["CANCELLED"],["NO_SHOW"]][back%5];
+      mk(doc,patUsers[(seq+back)%6],ds,fromMin(sh2+getSeedSlotLen()*(back%3)),r[0]);
+      if(back%2===0)mk(doc,patUsers[(seq+back+2)%6],ds,fromMin(sh2+getSeedSlotLen()*4),"COMPLETED");
+    }
+    for(const ahead of[1,2,3]){
+      const ds=addDaysStr(today,ahead),dd=dowOf(ds);const sh3=(doc.shifts[dd]&&doc.shifts[dd][0]);
+      if(!sh3)continue;
+      mk(doc,patUsers[(seq+ahead)%6],ds,fromMin(sh3+getSeedSlotLen()*((ahead*2)%6)),"BOOKED");
+      if(ahead<3)mk(doc,patUsers[(seq+ahead+3)%6],ds,fromMin(sh3+getSeedSlotLen()*((ahead*2+1)%8)),"BOOKED");
+    }
+  }
+  const p1=patUsers[0].id;
+  db={v:1,seededOn:today,users,departments,doctors,appointments,notifications:[
+      {id:uid(),userId:p1,type:"booking",title:"Appointment confirmed",body:"Dr. Meera Iyer · Ref "+appointments.find(a=>a.patientId===p1)?.ref,ts:Date.now()-36e5,read:false},
+      {id:uid(),userId:p1,type:"info",title:"Welcome to MediCare",body:"Your online OP desk is ready — book, reschedule or cancel anytime.",ts:Date.now()-864e5,read:false},
+    ],messages:[],audit:[
+      {ts:Date.now()-72e5,actor:"Priya Nair",action:"appointment.checkin",detail:"Queue assigned on today's OP board"},
+      {ts:Date.now()-26e5,actor:"Dr. Vikram Rao",action:"settings.update",detail:"Slot duration set to 15 minutes"},
+      {ts:Date.now()-18e5,actor:"system",action:"seed",detail:"Demo dataset generated"},
+    ],
+    settings:{hospitalName:"MediCare Multispeciality Hospital",slotMins:15,windowDays:14,cutoffHours:2,tz:"Hospital local time"}};
+  save();
+}
+function resetDemo(){localStorage.removeItem(DB_KEY);location.hash="";location.reload();}
+
+/* ---------- 5. Init ---------- */
+
+/* ---------- App State ---------- */
+const state = {
+  notifOpen: false,
+  sideOpen: false,
+  mongoAppointments: null,
+  mongoPatients: null,
+  mongoPatientsLoading: false,
+  mongoDoctors: null,
+  mongoDoctorsLoading: false,
+  mongoDoctorProfile: null,
+  mongoDoctorProfileLoading: false,
+  mongoDoctorProfileLoaded: false,
+  mongoPublicDoctors: null,
+  mongoPublicDoctorsLoading: false,
+  mongoNotifications: null,
+  mongoNotificationsLoading: false,
+  wiz: {},
+  af: {
+    status: "",
+    deptId: "",
+    doctorId: "",
+    from: "",
+    to: "",
+    q: ""
+  },
+  apage: 1,
+  dpage: 1,
+  lockUntil: 0,
+  loginEmail: ""
+};
+
+/* ---------- 5. Init ---------- */
+(async function init(){
+  const raw = localStorage.getItem(DB_KEY);
+
+  if (raw) {
+    try {
+      db = JSON.parse(raw);
+    } catch (e) {
+      db = null;
+    }
+  }
+
+  if (!db || !db.users) {
+    await seedDB();
+    toast("Demo hospital seeded — welcome to MediCare", "info");
+  } 
+
+  render();
+})();
+
+
+/* ---------- 6. Router ---------- */
+function route(){
+  const h=location.hash.replace(/^#\/?/,"");
+  return h.split("/").filter(Boolean);
+}
+window.addEventListener("hashchange",()=>{state.notifOpen=false;state.sideOpen=false;render()});
+
+/* ---------- 7. Shared UI builders ---------- */
+function monogram(name){return `<div class="avatar">${esc(name.replace(/^Dr\.?\s*/i,"").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase())}</div>`}
+function themeBtn(){return `<button class="icon-btn" data-action="theme" title="Toggle theme" aria-label="Toggle dark mode"><i data-lucide="${document.documentElement.dataset.theme==="dark"?"sun":"moon"}"></i></button>`}
+function pubHead(active){
+  const links=[["","Home"],["departments","Departments"],["doctors","Doctors"],["about","About"],["contact","Contact"]];
+  return `<div class="pub-head"><nav class="pub-nav">
+    <a class="brand" href="#/">${logoSvg()}<span>MediCare<small>HOSPITAL</small></span></a>
+    <div class="pub-links">${links.map(l=>`<a href="#/${l[0]}" class="${active===l[0]?"on":""}">${l[1]}</a>`).join("")}</div>
+    <div style="display:flex;gap:9px;align-items:center;margin-left:auto">
+      ${themeBtn()}
+      ${me()?`<a class="btn btn-p sm" href="#/app"><i data-lucide="layout-dashboard"></i>Dashboard</a>`
+        :`<a class="btn btn-g sm" href="#/login">Login</a><a class="btn btn-p sm" href="#/book"><i data-lucide="calendar-plus"></i>Book Appointment</a>`}
+      <button class="icon-btn mob-menu" data-action="mobnav" aria-label="Menu"><i data-lucide="menu"></i></button>
+    </div>
+  </nav><div id="mobnav"></div></div>`;
+}
+function logoSvg(){return `<span class="bmark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z" fill="#fff"/></svg></span>`}
+function bellHtml(){
+  const u=me();if(!u)return"";
+  const unread=db.notifications.filter(n=>n.userId===u.id&&!n.read);
+  const iconFor={booking:"calendar-check-2",cancel:"calendar-x",reschedule:"calendar-sync",status:"activity",queue:"list-ordered",info:"bell",schedule:"calendar-clock"};
+  return `<div style="position:relative">
+    <button class="icon-btn" data-action="bell" aria-label="Notifications"><i data-lucide="bell"></i>${unread.length?`<span class="nbadge">${unread.length}</span>`:""}</button>
+    ${state.notifOpen?`<div class="npanel">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px 6px"><strong style="font-size:13.5px">Notifications</strong>
+      ${db.notifications.some(n=>n.userId===u.id)?`<button class="link" style="font-size:12.5px" data-action="notif-all">Mark all read</button>`:""}</div>
+      ${db.notifications.filter(n=>n.userId===u.id).length?db.notifications.filter(n=>n.userId===u.id).slice(0,20).map(n=>`
+        <div class="nitem ${n.read?"read":"unread"}" data-action="notif-read" data-id="${n.id}" role="button" tabindex="0">
+          <span class="nd"></span><div><div style="font-weight:600;font-size:13.5px;display:flex;gap:7px;align-items:center"><i data-lucide="${iconFor[n.type]||"bell"}" style="width:14px;height:14px;color:var(--teal)"></i>${esc(n.title)}</div>
+          <div class="tiny" style="margin-top:2px">${esc(n.body)}</div><div class="tiny" style="margin-top:3px">${timeAgo(n.ts)}</div></div>
+        </div>`).join(""):`<div class="empty" style="padding:26px">You're all caught up.</div>`}
+    </div>`:""}
+  </div>`;
+}
+function shell(tab,title,content,roleLabel){
+  const u=me();
+  const NAV={
+    patient:[["overview","Overview","layout-dashboard"],["appts","My appointments","calendar-days"],["book","Book appointment","calendar-plus"],["notif","Notifications","bell"],["profile","Profile","user-round"]],
+    doctor:[["overview","Today's clinic","stethoscope"],["schedule","Schedule & hours","calendar-clock"],["history","History","history"]],
+    reception:[["queue","OP queue","list-ordered"],["walkin","Walk-in registration","user-plus"],["search","Patient search","search"],["schedule","Today's schedule","calendar-days"]],
+    admin:[["overview","Overview","layout-dashboard"],["appointments","Appointments","calendar-days"],["doctors","Doctors","stethoscope"],["departments","Departments","building-2"],["people","Staff & patients","users"],["settings","Settings","settings"],["audit","Audit log","scroll-text"]],
+  }[u.role]||[];
+  document.title=`${title} · MediCare`;
+  return `<div class="shell ${state.sideOpen?"sopen":""}">
+    <aside class="side">
+      <a class="brand" href="#/">${logoSvg()}<span>MediCare<small>HOSPITAL</small></span></a>
+      ${NAV.map(n=>`<a class="snav ${tab===n[0]?"on":""}" href="#/app/${n[0]}"><i data-lucide="${n[2]}"></i>${n[1]}</a>`).join("")}
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
+        <a class="snav" href="#/"><i data-lucide="globe"></i>Public website</a>
+        <button class="snav" data-action="logout"><i data-lucide="log-out"></i>Sign out</button>
+      </div>
+      <div class="side-foot">${monogram(u.name)}<div style="min-width:0"><div style="font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(u.name)}</div><div class="tiny" style="text-transform:capitalize">${roleLabel||u.role}</div></div></div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <button class="icon-btn burger" data-action="side" aria-label="Menu"><i data-lucide="menu"></i></button>
+        <h1 class="serif">${esc(title)}</h1>
+        <div style="margin-left:auto;display:flex;gap:9px;align-items:center">${themeBtn()}${bellHtml()}</div>
+      </div>
+      ${content}
+    </div>
+  </div><div class="ovl" id="sideovl" style="display:${state.sideOpen?"flex":"none"};z-index:140" data-action="side"></div>`;
+}
+function statTile(icon,val,label){return `<div class="stat-tile"><div class="sl"><i data-lucide="${icon}" style="width:15px;height:15px;color:var(--teal)"></i>${label}</div><div class="sv">${val}</div></div>`}
+function apptCard(a,opts={}){
+  const doc=docById(a.doctorId),dept=deptById(a.deptId),pat=userById(a.patientId),u=me();
+  const isToday=a.date===todayStr();
+  const canCancel=["BOOKED","CHECKED_IN"].includes(a.status)&&(u.role==="admin"||u.role==="reception"||(u.role==="patient"&&a.patientId===u.id));
+  const canResch=a.status==="BOOKED"&&(u.role==="admin"||u.role==="reception"||(u.role==="patient"&&a.patientId===u.id));
+  return `<div class="appt-card ${opts.hl?"hl":""}">
+    <div class="timeblock"><div class="tt">${fmt12(a.start)}</div><div class="tiny">${a.date===todayStr()?"Today":fmtDate(a.date)}</div></div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <strong>${esc(u.role==="patient"?doc.name:pat?pat.name:"—")}</strong>${badge(a.status)}
+        ${a.queue&&["CHECKED_IN","IN_CONSULT"].includes(a.status)?`<span class="tag">Queue #${a.queue}</span>`:""}
+        ${a.source==="walk_in"?`<span class="tiny">walk-in</span>`:""}
+      </div>
+      <div class="tiny" style="margin-top:3px">${esc(dept.name)} · ${esc(a.type)} · ${money(a.fee)} · Ref <span class="mono">${a.ref}</span></div>
+      ${a.reason?`<div class="tiny" style="margin-top:2px">Reason: ${esc(a.reason)}</div>`:""}
+      ${a.note&&(u.role!=="patient"||a.status==="COMPLETED")?`<div class="tiny" style="margin-top:2px;color:var(--teal)">Note: ${esc(a.note)}</div>`:""}
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        ${u.role==="patient"&&a.status!=="CANCELLED"?`<button class="btn btn-g btn-sm" data-action="ticket" data-id="${a.id}"><i data-lucide="printer"></i>Confirmation</button>`:""}
+        ${canResch?`<button class="btn btn-g btn-sm" data-action="resch" data-id="${a.id}"><i data-lucide="calendar-sync"></i>Reschedule</button>`:""}
+        ${canCancel?`<button class="btn btn-d btn-sm" data-action="cancel" data-id="${a.id}"><i data-lucide="x"></i>Cancel</button>`:""}
+        ${statusActions(a)}
+      </div>
+    </div></div>`;
+}
+function statusActions(a){
+  const u=me();if(!["doctor","reception","admin"].includes(u.role))return"";
+const appointmentId = a._id || a.id;
+
+const b = (next, label, icon, cls) =>
+  `<button class="btn btn-sm ${cls || "btn-g"}"
+    data-action="setstatus"
+    data-id="${appointmentId}"
+    data-next="${next}">
+    <i data-lucide="${icon}"></i>${label}
+  </button>`;  if(u.role==="reception"&&a.status==="BOOKED"&&String(a.appointmentDate || a.date || "").slice(0, 10) !== todayStr())return"";
+  switch(a.status){
+    case"BOOKED":return (String(a.appointmentDate || a.date || "").slice(0, 10) === todayStr()?b("CHECKED_IN","Check in","log-in","btn-p"):"")+(u.role!=="reception"?b("NO_SHOW","No-show","user-x"):"");
+    case"CHECKED_IN":return b("IN_CONSULT","Start consult","play","btn-p")+(u.role!=="reception"?b("NO_SHOW","No-show","user-x"):"");
+    case"IN_CONSULT":return b("COMPLETED","Complete","check","btn-p");
+    case"COMPLETED":return u.role==="doctor"?`<button class="btn btn-g btn-sm" data-action="note" data-id="${a.id}"><i data-lucide="file-pen"></i>Notes</button>`:"";
+    default:return"";
+  }
+}
+function areaChart(data,w=560,h=170){
+  if(!data.length)return"";const max=Math.max(...data.map(d=>d.v),1);
+  const px=44,pb=26,iw=(w-px-10)/data.length,ih=h-pb-12;
+  const pts=data.map((d,i)=>[px+i*iw+iw/2,12+ih-(d.v/max)*ih]);
+  const path=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const area=path+` L ${pts[pts.length-1][0].toFixed(1)} ${12+ih} L ${pts[0][0].toFixed(1)} ${12+ih} Z`;
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto" role="img" aria-label="Booking trend">
+    ${[0,.5,1].map(f=>`<line x1="${px}" x2="${w-10}" y1="${12+ih*f}" y2="${12+ih*f}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${px-8}" y="${15+ih*f}" font-size="10" fill="var(--ink3)" text-anchor="end">${Math.round(max*f)}</text>`).join("")}
+    <path d="${area}" fill="var(--teal-soft)"/><path d="${path}" stroke="var(--teal)" stroke-width="2.2" fill="none" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--teal)"/><text x="${p[0]}" y="${h-8}" font-size="10" fill="var(--ink3)" text-anchor="middle">${esc(data[i].l)}</text>`).join("")}
+  </svg>`;
+}
+function barChart(items,w=560,h=190){
+  const max=Math.max(...items.map(d=>d.v),1),bh=22,gap=10;
+  return `<svg viewBox="0 0 ${w} ${items.length*(bh+gap)+8}" style="width:100%;height:auto" role="img" aria-label="Department bookings">
+    ${items.map((d,i)=>{const y=i*(bh+gap)+4,bw=Math.max((d.v/max)*(w-190),2);return`<text x="0" y="${y+15}" font-size="12" fill="var(--ink2)">${esc(d.l)}</text>
+      <rect x="150" y="${y}" width="${bw}" height="${bh}" rx="6" fill="var(--teal)" opacity="${.45+.55*(d.v/max)}"/>
+      <text x="${152+bw+8}" y="${y+15}" font-size="12" font-weight="600" fill="var(--ink)">${d.v}</text>`}).join("")}
+  </svg>`;
+}
+
+/* ---------- 8. Public views ---------- */
+function vHome(){
+  const docs=db.doctors,deps=db.departments,s=getSettings();
+  const slotsToday=db.doctors.reduce((n,d)=>{const r=slotsFor(d,todayStr());return n+(r.slots?r.slots.filter(x=>x.available).length:0)},0);
+  const featured=[docs[0],docs[1],docs[5],docs[3],docs[2]];
+  const steps=[["calendar-plus","Choose department & doctor","Browse specialities, qualifications and consultation fees."],["clock","Pick a live time slot","Availability is calculated from real doctor rosters — no phone calls."],["badge-check","Get your booking reference","A unique reference confirms your slot is locked in."],["list-ordered","Walk in with a queue number","Check in at reception and track your token on the OP board."]];
+  return `${pubHead("")}
+  <section class="hero">
+    <div>
+      <span class="eyebrow">Online OP booking · Live availability</span>
+      <h1>Skip the queue.<br><em>Not the care.</em></h1>
+      <svg class="ecg" width="260" height="26" viewBox="0 0 260 26"><path d="M0 13 H70 L80 13 88 3 96 23 104 9 110 13 H150 L160 13 168 5 176 21 184 13 H260"/></svg>
+      <p class="muted" style="max-width:480px;font-size:16.5px">A 220-bed multispeciality hospital with a fully online outpatient desk. Pick your doctor, choose a live time slot, and walk in with your queue number already in hand.</p>
+      <div style="display:flex;gap:12px;margin-top:26px;flex-wrap:wrap">
+        <a class="btn btn-p" href="#/book" style="padding:13px 24px"><i data-lucide="calendar-plus"></i>Book an appointment</a>
+        <a class="btn btn-t" href="#/doctors">Find a doctor <i data-lucide="arrow-right"></i></a>
+      </div>
+      <div class="stat-strip">
+        <div><div class="stat-n">${deps.length}</div><div class="tiny">Specialities</div></div>
+        <div><div class="stat-n">${docs.length}</div><div class="tiny">Consultants</div></div>
+        <div><div class="stat-n">${slotsToday}</div><div class="tiny">Slots open today</div></div>
+        <div><div class="stat-n">${s.slotMins}<span style="font-size:15px">min</span></div><div class="tiny">Per consultation</div></div>
+      </div>
+    </div>
+    <div class="desk">
+      <div class="desk-head"><strong class="serif" style="font-size:18px">Live OP desk</strong><span class="live-dot">LIVE</span></div>
+      <div class="field"><label class="label" for="hd">Department</label>
+        <select id="hd" class="input" data-change="hero-dept"><option value="">Select a department…</option>${deps.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join("")}</select></div>
+      <div class="field"><label class="label" for="hdoc">Doctor</label>
+        <select id="hdoc" class="input" data-change="hero-doc" disabled><option value="">Choose department first</option></select></div>
+      <div id="hero-slots"><div class="empty" style="padding:22px"><i data-lucide="calendar-clock"></i><div class="tiny">Pick a doctor to see the next open slots.</div></div></div>
+      <p class="tiny" style="margin-top:12px"><i data-lucide="shield-check" style="width:13px;height:13px"></i> Availability is verified again on the server at booking time.</p>
+    </div>
+  </section>
+
+  <section class="sect" id="departments" style="padding-top:30px">
+    <div class="sect-head"><div><div class="kicker">Departments</div><h2>Every speciality,<br>under one roof.</h2></div><a class="btn btn-g" href="#/departments">View all departments</a></div>
+    <div class="dept-list">
+      ${deps.map((d,i)=>`<a class="dept-row" href="#/doctors?dept=${d.id}">
+        <span class="num">${pad(i+1)}</span><span class="di"><i data-lucide="${d.icon}"></i></span>
+        <div><h3>${esc(d.name)}</h3><div class="tiny">${esc(d.desc)}</div></div>
+        <span class="go">View doctors <i data-lucide="arrow-right"></i></span></a>`).join("")}
+    </div>
+  </section>
+
+  <section class="sect" style="padding-top:20px">
+    <div class="sect-head"><div><div class="kicker">Featured consultants</div><h2>Meet the doctors.</h2></div></div>
+    <div class="roster">
+      ${featured.map(d=>{const na=nextAvailable(d),dept=deptById(d.deptId);return`
+      <div class="doc-row">${monogram(d.name)}
+        <div style="flex:1;min-width:0"><h3>${esc(d.name)}</h3><div class="tiny">${esc(d.quals)} · ${d.exp} yrs · <span class="tag">${esc(dept.name)}</span></div></div>
+        <div style="text-align:right"><div class="tiny">Consults at</div><div class="fee">${money(d.fee)}</div></div>
+        <div style="min-width:150px">${na?`<div class="tiny">Next available</div><div style="font-weight:600;font-size:13.5px;color:var(--teal)">${fmtDate(na.date)} · ${fmt12(na.slots[0].start)}</div>`:`<div class="tiny">Fully booked ahead</div>`}</div>
+        <a class="btn btn-p btn-sm" href="#/book?doc=${d.id}">Book</a>
+      </div>`}).join("")}
+    </div>
+  </section>
+
+  <section class="sect" style="padding-top:20px">
+    <div class="sect-head"><div><div class="kicker">How it works</div><h2>Four steps to a confirmed slot.</h2></div></div>
+    <div class="steps">${steps.map((st,i)=>`<div class="step"><div class="sn">0${i+1}</div><h3>${st[1]}</h3><p class="tiny">${st[2]}</p></div>`).join("")}</div>
+  </section>
+
+  <section class="sect" style="padding-top:20px">
+    <div class="sect-head"><div><div class="kicker">Facilities</div><h2>Built around the patient.</h2></div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      ${[["siren","24×7 emergency & trauma care"],["pill","In-house pharmacy"],["flask-conical","NABL-grade diagnostics lab"],["bed-double","Day-care surgery suites"],["video","Teleconsult follow-ups"],["badge-dollar-sign","Cashless insurance desk"]].map(f=>`<span class="card" style="display:inline-flex;gap:9px;align-items:center;padding:11px 18px;border-radius:999px;font-weight:600;font-size:13.5px"><i data-lucide="${f[0]}" style="color:var(--teal);width:16px;height:16px"></i>${f[1]}</span>`).join("")}
+    </div>
+  </section>
+
+  <section class="sect" style="padding-top:26px">
+    <span class="demo-note"><i data-lucide="flask-round" style="width:13px;height:13px"></i> Demonstration content — illustrative quotes for this college build</span>
+    <div style="margin-top:26px">
+      <p class="quote-big">“I booked at 11pm, got a 9:15am slot with Dr. Iyer, and was out of the hospital by 10. The queue number on my phone changed everything.”</p>
+      <div class="quote-attr">${monogram("Diya Patel")}<div><strong>Diya Patel</strong><div class="tiny">Cardiology patient · Demo testimonial</div></div></div>
+    </div>
+    <div class="quotes-sm">
+      <div><p class="serif" style="font-size:18px;font-style:italic">“Reception had my file ready before I reached the counter. Walked in, token 2, done in twenty minutes.”</p><div class="tiny" style="margin-top:10px"><strong>Rohan Verma</strong> · Orthopaedics · Demo testimonial</div></div>
+      <div><p class="serif" style="font-size:18px;font-style:italic">“Rescheduling took one tap when my shift changed. No calls, no arguing at the desk.”</p><div class="tiny" style="margin-top:10px"><strong>Sneha Krishnan</strong> · Dermatology · Demo testimonial</div></div>
+    </div>
+  </section>
+
+  <footer class="pub-foot"><div class="foot-grid">
+    <div><a class="brand" style="margin-bottom:14px" href="#/">${logoSvg()}<span>MediCare<small>HOSPITAL</small></span></a>
+      <p class="tiny" style="max-width:300px">A demonstration hospital-management build for a college final-year project. All patients, doctors and testimonials are synthetic.</p></div>
+    <div><h3 style="font-size:16px;margin-bottom:12px">OP hours</h3>
+      <div class="hours-row"><span>Mon – Fri</span><strong>9:00 AM – 5:00 PM</strong></div>
+      <div class="hours-row"><span>Saturday</span><strong>9:00 AM – 1:00 PM</strong></div>
+      <div class="hours-row"><span>Sunday</span><strong>Emergency only</strong></div></div>
+    <div><h3 style="font-size:16px;margin-bottom:12px">Contact</h3>
+      <p class="tiny" style="display:flex;gap:8px;margin-bottom:8px"><i data-lucide="map-pin"></i>14 Wellness Avenue, Anna Nagar</p>
+      <p class="tiny" style="display:flex;gap:8px;margin-bottom:8px"><i data-lucide="phone"></i>+91 44 4000 5000</p>
+      <p class="tiny" style="display:flex;gap:8px;margin-bottom:14px"><i data-lucide="mail"></i>care@medicare.example</p>
+      <a class="btn btn-p btn-sm" href="#/book">Book appointment</a></div>
+  </div>
+  <div class="foot-bottom"><span>© ${new Date().getFullYear()} MediCare (educational demo — not a real hospital).</span><span>Emergency? Call +91 44 4000 5100</span></div></footer>`;
+}
+
+function vDepartments(){
+  return `${pubHead("departments")}<section class="sect">
+    <div class="sect-head"><div><div class="kicker">Departments</div><h2>Eight specialities, one standard of care.</h2></div></div>
+    <div class="dept-list">${db.departments.map((d,i)=>{const n=db.doctors.filter(x=>x.deptId===d.id).length;
+      return`<a class="dept-row" href="#/doctors?dept=${d.id}"><span class="num">${pad(i+1)}</span><span class="di"><i data-lucide="${d.icon}"></i></span>
+      <div><h3>${esc(d.name)}</h3><div class="tiny">${esc(d.desc)} · ${n} consultant${n>1?"s":""}</div></div><span class="go">View doctors <i data-lucide="arrow-right"></i></span></a>`}).join("")}</div>
+  </section>`;
+}
+
+function vDoctors(q){
+  if (state.mongoPublicDoctors === null) {
+    if (!state.mongoPublicDoctorsLoading) {
+      loadPublicMongoDoctors();
+    }
+
+    return `${pubHead("doctors")}
+      <section class="sect">
+        <div class="empty card">Loading doctors...</div>
+      </section>`;
+  }
+
+  const dept = q.dept || "";
+  const search = (q.q || "").toLowerCase();
+
+  let list = state.mongoPublicDoctors
+    .map(d => ({
+      ...d,
+      id: d.frontendId || d._id,
+      deptId: d.departmentId,
+      quals: d.qualification || "General Medicine",
+      exp: d.experience ?? 0,
+      bio: d.bio || "",
+      fee: d.fee || 0
+    }))
+    .filter(d =>
+      (!dept || d.deptId === dept) &&
+      (
+        !search ||
+        (d.name || "").toLowerCase().includes(search) ||
+        (d.quals || "").toLowerCase().includes(search)
+      )
+    );
+
+  return `${pubHead("doctors")}<section class="sect">
+    <div class="sect-head"><div><div class="kicker">Find a doctor</div><h2>${list.length} consultant${list.length!==1?"s":""} available.</h2></div></div>
+    <div class="filters" style="margin-bottom:22px">
+      <div class="field grow"><label class="label" for="dq">Search</label><input id="dq" class="input" placeholder="Name or qualification…" value="${esc(q.q||"")}" data-change="pubdoc-q"></div>
+      <div class="field"><label class="label" for="dd">Department</label><select id="dd" class="input" data-change="pubdoc-dept">
+        <option value="">All departments</option>${db.departments.map(d=>`<option value="${d.id}" ${dept===d.id?"selected":""}>${esc(d.name)}</option>`).join("")}</select></div>
+    </div>
+    <div class="roster">${list.length?list.map(d=>{const na = nextAvailable(d);
+      const dept2 = deptById(d.deptId) || { name: d.deptId || "Department" };
+      return`<div class="doc-row">${monogram(d.name)}
+        <div style="flex:1;min-width:0"><h3>${esc(d.name)}</h3><div class="tiny">${esc(d.quals)} · ${d.exp} yrs</div>
+        <p class="tiny" style="margin-top:5px;max-width:520px">${esc(d.bio)}</p></div>
+        <span class="tag">${esc(dept2.name)}</span>
+        <div style="text-align:right"><div class="tiny">Consults at</div><div class="fee">${money(d.fee)}</div></div>
+        <div style="min-width:150px">${na?`<div class="tiny">Next available</div><div style="font-weight:600;font-size:13.5px;color:var(--teal)">${fmtDate(na.date)} · ${fmt12(na.slots[0].start)}</div>`:`<div class="tiny">Check back later</div>`}</div>
+        <a class="btn btn-p btn-sm" href="#/book?doc=${d.id}">Book</a></div>`}).join("")
+      :`<div class="empty"><i data-lucide="search-x"></i>No doctors match your search.</div>`}</div>
+  </section>`;
+}
+function vAbout(){
+  return `${pubHead("about")}<section class="sect">
+    <div class="kicker">About MediCare</div><h2 style="font-size:clamp(28px,4vw,42px);max-width:640px">A teaching build of a modern hospital front desk — open twenty-four hours, seven days a week.</h2>
+    <div class="grid2" style="margin-top:38px">
+      <div><p class="muted">MediCare Multispeciality Hospital is the fictional setting for this final-year project: a 220-bed hospital whose outpatient desk moved fully online. The application you're using implements the complete OP workflow — real slot calculation from doctor rosters, transaction-safe booking, queue management, and role-based dashboards for patients, doctors, reception and administration.</p>
+      <p class="muted" style="margin-top:14px">Every person, appointment and review in this demo is synthetic. No real patient data exists here, and the build is intended for education only.</p></div>
+      <div class="grid2">
+        ${statTile("bed-double","220","Inpatient beds")}${statTile("stethoscope",state.mongoDoctors?.length || db.doctors.length,"Consultants")}${statTile("heart-pulse","8","Specialities")}${statTile("siren","24×7","Emergency")}
+      </div>
+    </div></section>`;
+}
+function vContact(){
+  return `${pubHead("contact")}<section class="sect">
+    <div class="kicker">Contact</div><h2 style="font-size:clamp(28px,4vw,40px)">We're a message away.</h2>
+    <div class="grid2" style="margin-top:34px">
+      <form class="card" style="padding:26px" data-form="contact" novalidate>
+        <h3 style="font-size:19px;margin-bottom:16px">Send us a note</h3>
+        <div class="field"><label class="label" for="cn">Your name</label><input id="cn" class="input" name="name" required><span class="err" data-err="name"></span></div>
+        <div class="field"><label class="label" for="ce">Email</label><input id="ce" class="input" name="email" type="email" required><span class="err" data-err="email"></span></div>
+        <div class="field"><label class="label" for="cm">Message</label><textarea id="cm" class="input" name="msg" required></textarea><span class="err" data-err="msg"></span></div>
+        <button class="btn btn-p" style="width:100%;justify-content:center">Send message</button>
+        <p class="tiny" style="margin-top:10px">Messages in this demo are stored locally and reviewed by the demo administrator.</p>
+      </form>
+      <div>
+        <div class="card" style="padding:24px;margin-bottom:16px"><h3 style="font-size:17px;margin-bottom:10px">Visit us</h3>
+          <p class="tiny" style="display:flex;gap:9px;margin-bottom:8px"><i data-lucide="map-pin"></i>14 Wellness Avenue, Anna Nagar, Chennai 600040</p>
+          <p class="tiny" style="display:flex;gap:9px"><i data-lucide="phone"></i>Reception: +91 44 4000 5000 · Emergency: +91 44 4000 5100</p></div>
+        <div class="card" style="padding:24px"><h3 style="font-size:17px;margin-bottom:10px">OP hours</h3>
+          <div class="hours-row"><span>Mon – Fri</span><strong>9:00 AM – 5:00 PM</strong></div>
+          <div class="hours-row"><span>Saturday</span><strong>9:00 AM – 1:00 PM</strong></div>
+          <div class="hours-row"><span>Sunday</span><strong>Emergency only</strong></div></div>
+      </div>
+    </div></section>`;
+}
+
+/* ---------- 9. Auth views ---------- */
+function demoChips(){
+  return `<div style="margin-top:18px;border-top:1px dashed var(--line2);padding-top:14px">
+    <div class="label" style="margin-bottom:9px">Development demo accounts</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${[["patient@medicare.dev","Patient@123","Patient","user-round"],["doctor@medicare.dev","Doctor@123","Doctor","stethoscope"],["reception@medicare.dev","Reception@123","Reception","concierge-bell"],["admin@medicare.dev","Admin@123","Admin","shield"]].map(c=>`
+      <button class="opt" style="padding:10px 12px" data-action="fill-login" data-email="${c[0]}" data-pass="${c[1]}"><i data-lucide="${c[3]}" style="color:var(--teal);width:16px;height:16px"></i><div style="min-width:0"><div style="font-weight:600;font-size:12.5px">${c[2]}</div><div class="tiny mono" style="font-size:10.5px">${c[0]}</div></div></button>`).join("")}
+    </div></div>`;
+}
+function vLogin(){
+  if(me())return vApp();
+  const locked=Date.now()<state.lockUntil;
+  return `${pubHead("")}<section class="sect" style="max-width:470px;padding-top:56px">
+    <div class="card" style="padding:32px">
+      <h2 style="font-size:26px;margin-bottom:6px">Welcome back</h2><p class="muted" style="margin-bottom:22px">Sign in to your MediCare account.</p>
+      <form data-form="login" novalidate>
+        <div class="field"><label class="label" for="le">Email</label><input id="le" class="input" name="email" type="email" autocomplete="username" required value="${esc(state.loginEmail||"")}"><span class="err" data-err="email"></span></div>
+        <div class="field"><label class="label" for="lp">Password</label><input id="lp" class="input" name="password" type="password" autocomplete="current-password" required><span class="err" data-err="password"></span></div>
+        ${locked?`<p class="err show">Too many attempts — try again in ${Math.ceil((state.lockUntil-Date.now())/1000)}s.</p>`:""}
+        <button class="btn btn-p" style="width:100%;justify-content:center" ${locked?"disabled":""}>Sign in</button>
+      </form>
+      <p class="tiny" style="margin-top:14px">New patient? <a class="link" href="#/register">Create an account</a> · <a class="link" href="#/">Back to home</a></p>
+      ${demoChips()}
+    </div></section>`;
+}
+function vRegister(){
+  return `${pubHead("")}<section class="sect" style="max-width:470px;padding-top:56px">
+    <div class="card" style="padding:32px">
+      <h2 style="font-size:26px;margin-bottom:6px">Create your patient account</h2><p class="muted" style="margin-bottom:22px">Book, reschedule and track appointments online.</p>
+      <form data-form="register" novalidate>
+        <div class="field"><label class="label" for="rn">Full name</label><input id="rn" class="input" name="name" required><span class="err" data-err="name"></span></div>
+        <div class="field"><label class="label" for="re">Email</label><input id="re" class="input" name="email" type="email" required><span class="err" data-err="email"></span></div>
+        <div class="field"><label class="label" for="rp">Phone</label><input id="rp" class="input" name="phone" placeholder="+91 …" required><span class="err" data-err="phone"></span></div>
+        <div class="grid2" style="gap:12px">
+          <div class="field"><label class="label" for="ra">Password</label><input id="ra" class="input" name="password" type="password" required><span class="err" data-err="password"></span></div>
+          <div class="field"><label class="label" for="rc">Confirm</label><input id="rc" class="input" name="confirm" type="password" required><span class="err" data-err="confirm"></span></div>
+        </div>
+        <button class="btn btn-p" style="width:100%;justify-content:center">Create account</button>
+      </form>
+      <p class="tiny" style="margin-top:14px">Already registered? <a class="link" href="#/login">Sign in</a></p>
+    </div></section>`;
+}
+
+/* ---------- 10. Booking wizard ---------- */
+function vBook(q){
+  const u=me();
+  if(!u||u.role!=="patient"){
+    if(u){toast("Reception books walk-ins from the OP queue tab","info");location.hash="#/app/queue";return""}
+    state.loginEmail="";toast("Please sign in as a patient to book","info");location.hash="#/login";return"";
+  }
+  const w=state.wiz;
+  if(q.doc&&!w.doctorId){const d=docById(q.doc);if(d){w.doctorId=d.id;w.deptId=d.deptId;w.step=3;}}
+  w.step=w.step||1;
+  const steps=["Department","Doctor","Date & time","Confirm"];
+  let body="";
+  if(w.step===1){
+    body=`<div class="opt-grid">${db.departments.map(d=>`
+      <button class="opt ${w.deptId===d.id?"on":""}" data-action="wiz-dept" data-id="${d.id}"><span class="di" style="width:40px;height:40px;border-radius:11px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center"><i data-lucide="${d.icon}"></i></span>
+      <div><strong style="font-size:14.5px">${esc(d.name)}</strong><div class="tiny">${esc(d.desc)}</div></div></button>`).join("")}</div>`;
+  }else if(w.step===2){
+
+const list = [
+  ...db.doctors,
+  ...(state.mongoPublicDoctors || []).map(d => ({
+    ...d,
+    id: d.frontendId || d._id,
+    deptId: d.departmentId,
+    quals: d.qualification || "General Medicine",
+    exp: d.experience ?? 0,
+    bio: d.bio || "",
+    fee: d.fee || 0
+  })).filter(m => !db.doctors.some(
+    local => local.id === m.id || local.frontendId === m.frontendId
+  ))
+].filter(d => d.deptId === w.deptId);
+    body=`<div style="display:grid;gap:10px">${list.map(d=>{const na=nextAvailable(d);
+      return`<button class="opt ${w.doctorId===d.id?"on":""}" data-action="wiz-doc" data-id="${d.id}">${monogram(d.name)}
+      <div style="flex:1;text-align:left"><strong>${esc(d.name)}</strong><div class="tiny">${esc(d.quals)} · ${money(d.fee)}</div></div>
+      <div style="text-align:right">${na?`<div class="tiny">Next</div><div style="color:var(--teal);font-weight:600;font-size:13px">${fmt12(na.slots[0].start)}</div>`:`<span class="tiny">Fully booked</span>`}</div></button>`}).join("")}</div>`;
+  }else if(w.step===3){
+    const doc=docById(w.doctorId);
+    const days=[];for(let i=0;i<=Math.min(getSettings().windowDays,13);i++)days.push(addDaysStr(todayStr(),i));
+    if(!w.date)w.date=days.find(ds=>{const r=slotsFor(doc,ds);return r.slots&&r.slots.some(x=>x.available)})||days[0];
+    const r=slotsFor(doc,w.date);
+    body=`<div class="datestrip">${days.map(ds=>{const rr=slotsFor(doc,ds);
+      const cnt=rr.slots?rr.slots.filter(x=>x.available).length:0;
+      return`<button class="dchip ${w.date===ds?"on":""}" data-action="wiz-date" data-id="${ds}" ${!cnt&&ds!==w.date?"disabled":""}>
+      <div class="dw">${DAYS[dowOf(ds)]}</div><div class="dd">${dObj(ds).getDate()}</div>
+      <div class="dc">${rr.closed?"—":cnt+" free"}</div></button>`}).join("")}</div>
+      ${r.closed?`<div class="empty"><i data-lucide="calendar-off"></i><div>${esc(r.closed)} on ${fmtDate(w.date)} — pick another day.</div></div>`
+      :`<div class="slotgrid">${r.slots.map(sl=>`
+        <button class="slot ${w.slot===sl.start?"on":""}" data-action="wiz-slot" data-id="${sl.start}" ${!sl.available?"disabled":""} title="${sl.available?"Available":"Unavailable"}">${fmt12(sl.start)}</button>`).join("")}</div>
+      <div class="legend"><span><i></i>Open</span><span><i style="opacity:.4"></i>Booked / past</span></div>`}
+      <input type="date" class="input" style="max-width:200px;margin-top:18px" min="${todayStr()}" max="${addDaysStr(todayStr(),getSettings().windowDays)}" value="${w.date}" data-change="wiz-dateip" aria-label="Pick a date">`;
+  }else{
+    const doc=docById(w.doctorId),dept=deptById(doc.deptId);
+    body=`<div class="card" style="padding:22px;box-shadow:none">
+      <div class="tk-row"><span class="k">Doctor</span><strong>${esc(doc.name)}</strong></div>
+      <div class="tk-row"><span class="k">Department</span><span>${esc(dept.name)}</span></div>
+      <div class="tk-row"><span class="k">When</span><strong>${fmtDateLong(w.date)} · ${fmt12(w.slot)}</strong></div>
+      <div class="tk-row"><span class="k">Consultation fee</span><strong>${money(doc.fee)}</strong></div>
+      <div class="tk-row" style="border:none"><span class="k">Patient</span><span>${esc(u.name)} · ${esc(u.patientNo||"")}</span></div></div>
+      <div class="grid2" style="margin-top:18px;gap:12px">
+        <div class="field"><label class="label" for="wtype">Visit type</label><select id="wtype" class="input" data-change="wiz-type"><option>New consultation</option><option>Follow-up</option></select></div>
+        <div class="field"><label class="label" for="wreason">Reason for visit <span style="text-transform:none">(optional)</span></label><input id="wreason" class="input" data-change="wiz-reason" value="${esc(w.reason||"")}" maxlength="120"></div>
+      </div>
+      <p class="tiny" style="margin-top:6px"><i data-lucide="info" style="width:13px;height:13px"></i> Free cancellation until ${getSettings().cutoffHours}h before the slot. Your slot is re-verified on confirmation.</p>`;
+  }
+  return `${pubHead("book")}<section class="sect" style="max-width:760px;padding-top:46px">
+    <div class="kicker">Online OP booking</div><h2 style="margin-bottom:22px">Book an appointment</h2>
+    <div class="stepper">${steps.map((s2,i)=>`<span class="${w.step===i+1?"on":w.step>i+1?"done":""}">${w.step>i+1?'<i data-lucide="check" style="width:13px;height:13px"></i>':pad(i+1)}${s2}</span>`).join("")}</div>
+    ${body}
+    <div style="display:flex;gap:10px;margin-top:26px;justify-content:space-between">
+      <button class="btn btn-g" data-action="wiz-back" ${w.step===1?"disabled":""}"><i data-lucide="arrow-left"></i>Back</button>
+      ${w.step<4?`<button class="btn btn-p" data-action="wiz-next" ${w.step===1&&!w.deptId?"disabled":""} ${w.step===2&&!w.doctorId?"disabled":""} ${w.step===3&&!w.slot?"disabled":""}">Continue<i data-lucide="arrow-right"></i></button>`
+      :`<button class="btn btn-p" data-action="wiz-confirm"><i data-lucide="check-check"></i>Confirm booking</button>`}
+    </div></section>`;
+}
+function vConfirm(ref){
+  const u=me();const a=db.appointments.find(x=>x.ref===ref);
+  if(!a||(u.role==="patient"&&a.patientId!==u.id)){return `${pubHead("")}<section class="sect"><div class="empty"><i data-lucide="file-question"></i>Confirmation not found.</div></section>`}
+  const doc=docById(a.doctorId),dept=deptById(a.deptId),pat=userById(a.patientId);
+  const bars=Array.from(a.ref).map(ch=>`<i style="height:${8+(ch.charCodeAt(0)%5)*7}px"></i>`).join("");
+  document.title="Booking confirmed · MediCare";
+  return `${pubHead("book")}<section class="sect" style="max-width:640px;padding-top:46px">
+    <div style="text-align:center;margin-bottom:26px">
+      <span style="width:60px;height:60px;border-radius:50%;background:var(--soft-done);color:var(--green);display:inline-flex;align-items:center;justify-content:center"><i data-lucide="check-check" style="width:28px;height:28px"></i></span>
+      <h2 style="margin-top:14px">Your slot is locked in.</h2><p class="muted">Save your booking reference — it's your key at the front desk.</p></div>
+    <div class="ticket">
+      <div class="ticket-head"><div>${logoSvg().replace('class="bmark"','class="bmark" style="background:rgba(255,255,255,.16)"')} <strong style="font-family:'Fraunces',serif;font-size:19px">${esc(getSettings().hospitalName)}</strong></div>
+      <div style="text-align:right"><div style="font-size:11px;letter-spacing:.12em;opacity:.85">BOOKING REF</div><div class="mono" style="font-size:17px;font-weight:700">${a.ref}</div></div></div>
+      <div class="ticket-body">
+        <div class="tk-row"><span class="k">Patient</span><strong>${esc(pat?.name||"—")} · ${esc(pat?.patientNo||"")}</strong></div>
+        <div class="tk-row"><span class="k">Doctor</span><strong>${esc(doc.name)}</strong></div>
+        <div class="tk-row"><span class="k">Department</span><span>${esc(dept.name)}</span></div>
+        <div class="tk-row"><span class="k">Date</span><strong>${fmtDateLong(a.date)}</strong></div>
+        <div class="tk-row"><span class="k">Time</span><strong>${fmt12(a.start)} – ${fmt12(a.end)}</strong></div>
+        <div class="tk-row"><span class="k">Type · Source</span><span>${esc(a.type)} · ${a.source==="walk_in"?"Walk-in":"Online"}</span></div>
+        <div class="tk-row"><span class="k">Fee (payable at hospital)</span><strong>${money(a.fee)}</strong></div>
+        <div class="tk-row" style="border:none"><span class="k">Status</span>${badge(a.status)}</div>
+        <div class="codebars" aria-hidden="true">${bars}</div>
+        <p class="tiny" style="margin-top:14px">Please arrive 10 minutes early and check in at the ${esc(dept.name)} desk to receive your queue token.</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px">
+      <button class="btn btn-p" data-action="print"><i data-lucide="printer"></i>Print / Save PDF</button>
+      <a class="btn btn-g" href="#/app"><i data-lucide="layout-dashboard"></i>Go to dashboard</a>
+    </div></section>`;
+}
+
+/* ---------- 11. Dashboards ---------- */
+function vApp(seg){
+  const u=me();
+  if(u && u.role==="receptionist"){
+  u.role="reception";
+} 
+  if(!u){location.hash="#/login";return""}
+  const tabs={patient:["overview","appts","book","notif","profile"],doctor:["overview","schedule","history","notif"],reception:["queue","walkin","search","schedule"],admin:["overview","appointments","doctors","departments","people","settings","audit"]}[u.role];
+  const tab=tabs.includes(seg)?seg:tabs[0];
+  const V={patient:{overview:pOverview,appts:pAppts,profile:pProfile,notif:pNotif},doctor:{overview:dToday,schedule:dSchedule,history:dHistory,notif:dNotif},reception:{queue:rQueue,walkin:rWalkin,search:rSearch,schedule:rSched},admin:{overview:aOverview,appointments:aAppts,doctors:aDoctors,departments:aDepts,people:aPeople,settings:aSettings,audit:aAudit}}[u.role];
+  const titles={overview:"Dashboard",appts:"My appointments",book:"Book appointment",notif:"Notifications",profile:"My profile",schedule:"Schedule & hours",history:"Appointment history",queue:"Today's OP queue",walkin:"Walk-in registration",search:"Patient search",appointments:"Appointments",doctors:"Doctors",departments:"Departments",people:"Staff & patients",settings:"System settings",audit:"Audit log"};
+  if(tab==="book")return vBook({});
+  
+if (u.role === "reception" && tab === "walkin") {
+  if (state.mongoPublicDoctors === null) {
+    if (!state.mongoPublicDoctorsLoading) {
+      loadPublicMongoDoctors();
+    }
+
+    return shell(
+      tab,
+      titles[tab] || "Dashboard",
+      `<div class="empty card">Loading doctors...</div>`
+    );
+  }
+}
+
+return shell(tab, titles[tab] || "Dashboard", V[tab]());
+
+}
+function myAppts(u){return db.appointments.filter(a=>u.role==="patient"?a.patientId===u.id:u.role==="doctor"?a.doctorId===docFor(u)?.id:true).sort((a,b)=>(b.date+b.start).localeCompare(a.date+a.start))}
+
+
+
+function docFor(u) {
+  if (!u) return null;
+
+  if (!Array.isArray(db.doctors)) {
+    db.doctors = [];
+  }
+
+  const userId = String(u.id || u._id || "");
+
+  // First, try the existing local doctor profile.
+  let doctor = db.doctors.find(d =>
+    d &&
+    String(d.userId || d.user?._id || d.user || "") === userId
+  );
+
+  // Also support a doctor profile already linked by frontend ID.
+  if (!doctor) {
+    doctor = db.doctors.find(d =>
+      d &&
+      String(d.frontendId || "") === String(u.id || "")
+    );
+  }
+
+ 
+if (doctor) {
+  return doctor;
+}
+
+const mongoDoc = state.mongoDoctorProfile;
+
+if (mongoDoc && mongoDoc._id) {
+  return {
+    ...mongoDoc,
+    id: mongoDoc.frontendId || String(mongoDoc._id),
+    mongoId: String(mongoDoc._id),
+    userId: String(mongoDoc.user?._id || mongoDoc.user || ""),
+    name: mongoDoc.user?.name || u.name || "Doctor",
+    deptId: mongoDoc.departmentId,
+    quals: mongoDoc.qualification || "",
+    exp: mongoDoc.experience ?? 0,
+    shifts: mongoDoc.shifts || {},
+    leave: mongoDoc.leave || [],
+    fee: mongoDoc.fee ?? 0
+  };
+}
+
+return null;
+}
+
+
+async function loadMongoDoctorProfile() {
+  if (state.mongoDoctorProfileLoading || state.mongoDoctorProfileLoaded) {
+    return;
+  }
+
+  state.mongoDoctorProfileLoading = true;
+
+  try {
+    const token = localStorage.getItem("authToken");
+
+    const response = await fetch("http://localhost:5000/api/doctors/me", {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load doctor profile");
+    }
+
+    state.mongoDoctorProfile = data.doctor || null;
+
+  } catch (error) {
+    console.error("Doctor profile loading error:", error);
+    state.mongoDoctorProfile = null;
+
+  } finally {
+    state.mongoDoctorProfileLoading = false;
+    state.mongoDoctorProfileLoaded = true;
+    render();
+  }
+}
+
+
+/* --- Patient --- */
+function pOverview(){
+  const u=me();const mine=myAppts(u);
+  const up=mine.filter(a=>["BOOKED","CHECKED_IN","IN_CONSULT"].includes(a.status)&&(a.date>todayStr()||(a.date===todayStr()&&toMin(a.end)>=nowMin())));
+  const past=mine.filter(a=>!up.includes(a));
+  const next=up[up.length-1];
+  const unread=db.notifications.filter(n=>n.userId===u.id&&!n.read).length;
+  return `<div class="grid2" style="grid-template-columns:1.15fr .85fr;align-items:start">
+    <div>
+      <h2 class="serif" style="font-size:26px;margin-bottom:4px">Hello, ${esc(u.name.split(" ")[0])}.</h2>
+      <p class="muted" style="margin-bottom:20px">${next?"Your next visit is coming up.":"No upcoming visits — your health won't wait."}</p>
+      ${next?apptCard(next,{hl:true}):`<div class="empty card"><i data-lucide="calendar-plus"></i><a class="btn btn-p btn-sm" href="#/app/book">Book your first appointment</a></div>`}
+      <h3 style="font-size:17px;margin:26px 0 12px">Earlier appointments</h3>
+      ${past.length?past.slice(0,3).map(a=>apptCard(a)).join(""):`<p class="tiny">Nothing here yet.</p>`}
+    </div>
+    <div>
+      <div class="grid2" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+        ${statTile("calendar-clock",up.length,"Upcoming")}${statTile("clock",db.notifications.filter(n=>n.userId===u.id&&!n.read).length,"Unread alerts")}
+      </div>
+      <div class="card" style="padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong style="font-size:14.5px">Latest notifications</strong><a class="link" style="font-size:12.5px" href="#/app/notif">View all</a></div>
+        ${db.notifications.filter(n=>n.userId===u.id).slice(0,4).map(n=>`<div style="padding:9px 0;border-bottom:1px dashed var(--line2)"><div style="font-weight:600;font-size:13px">${esc(n.title)}</div><div class="tiny">${esc(n.body)}</div></div>`).join("")||`<p class="tiny">No notifications yet.</p>`}
+        ${unread?`<p class="tiny" style="margin-top:8px;color:var(--teal)">${unread} unread</p>`:""}
+      </div>
+      <div class="card" style="padding:18px;margin-top:16px"><strong style="font-size:14.5px">Cancellation policy</strong>
+        <p class="tiny" style="margin-top:6px">Free cancellation or reschedule up to ${getSettings().cutoffHours} hours before the slot. Later changes go through reception. Repeated no-shows may restrict online booking.</p></div>
+    </div></div>`;
+}
+function pAppts(){
+  const mine=myAppts(me()).filter(a=>a.status!=="CANCELLED"||true);
+  const up=mine.filter(a=>["BOOKED","CHECKED_IN","IN_CONSULT"].includes(a.status));
+  const past=mine.filter(a=>!["BOOKED","CHECKED_IN","IN_CONSULT"].includes(a.status));
+  return `<h3 style="font-size:17px;margin-bottom:12px">Upcoming (${up.length})</h3>
+    ${up.length?`<div style="display:grid;gap:12px">${up.slice().reverse().map(a=>apptCard(a)).join("")}</div>`:`<div class="empty card"><i data-lucide="calendar-plus"></i><div class="tiny">No upcoming appointments.</div> <a class="btn btn-p btn-sm" style="margin-top:12px" href="#/app/book">Book now</a></div>`}
+    <h3 style="font-size:17px;margin:26px 0 12px">History (${past.length})</h3>
+    ${past.length?`<div style="display:grid;gap:12px">${past.slice(0,10).map(a=>apptCard(a)).join("")}</div>`:`<p class="tiny">No past appointments.</p>`}`;
+}
+function pNotif(){
+  const u=me();const list=db.notifications.filter(n=>n.userId===u.id);
+  return `<div class="card" style="padding:8px">${list.length?list.map(n=>`
+    <div class="nitem ${n.read?"read":"unread"}" data-action="notif-read" data-id="${n.id}" role="button" tabindex="0"><span class="nd"></span>
+    <div><div style="font-weight:600">${esc(n.title)}</div><div class="tiny">${esc(n.body)}</div><div class="tiny" style="margin-top:3px">${timeAgo(n.ts)}</div></div></div>`).join("")
+    :`<div class="empty"><i data-lucide="bell-off"></i>Nothing yet — book an appointment to get started.</div>`}</div>
+    ${list.some(n=>!n.read)?`<button class="btn btn-g btn-sm" style="margin-top:12px" data-action="notif-all">Mark all as read</button>`:""}`;
+}
+
+function dNotif() {
+  if (state.mongoNotifications === null) {
+    if (!state.mongoNotificationsLoading) {
+      loadMongoNotifications();
+    }
+
+    return `<div class="empty card">
+      Loading notifications from MongoDB...
+    </div>`;
+  }
+
+  const list = state.mongoNotifications || [];
+
+  return `<div class="card" style="padding:8px">
+    ${list.length
+      ? list.map(n => `
+        <div class="nitem ${n.read ? "read" : "unread"}">
+          <span class="nd"></span>
+          <div>
+            <div style="font-weight:600">${esc(n.title)}</div>
+            <div class="tiny">${esc(n.body)}</div>
+            <div class="tiny" style="margin-top:3px">
+              ${n.createdAt ? timeAgo(new Date(n.createdAt).getTime()) : ""}
+            </div>
+          </div>
+        </div>
+      `).join("")
+      : `<div class="empty">
+          <i data-lucide="bell-off"></i>
+          No notifications yet.
+        </div>`
+    }
+  </div>`;
+}
+
+function pProfile(){
+  const u=me();
+  return `<div class="card" style="max-width:560px;padding:26px">
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:20px">${monogram(u.name)}<div><strong style="font-size:17px">${esc(u.name)}</strong><div class="tiny">Patient ID <span class="mono">${esc(u.patientNo||"—")}</span> · ${esc(u.role)}</div></div></div>
+    <form data-form="profile" novalidate>
+      <div class="field"><label class="label" for="pfn">Full name</label><input id="pfn" class="input" name="name" value="${esc(u.name)}" required></div>
+      <div class="field"><label class="label" for="pfp">Phone</label><input id="pfp" class="input" name="phone" value="${esc(u.phone||"")}"></div>
+      <div class="grid2" style="gap:12px">
+        <div class="field"><label class="label" for="pfa">Age</label><input id="pfa" class="input" name="age" type="number" min="0" max="120" value="${esc(u.age||"")}"></div>
+        <div class="field"><label class="label" for="pfg">Gender</label><select id="pfg" class="input" name="gender"><option value="">Prefer not to say</option>${["Female","Male","Other"].map(g=>`<option ${u.gender===g?"selected":""}>${g}</option>`).join("")}</select></div>
+      </div>
+      <div class="field"><label class="label">Email (login)</label><input class="input" value="${esc(u.email)}" disabled></div>
+      <button class="btn btn-p">Save profile</button>
+    </form></div>`;
+}
+
+/* --- Doctor --- */
+
+function dToday() {
+  if (state.mongoAppointments === null) {
+  if (!state.mongoAppointmentsLoading) {
+    loadMongoAppointments();
+  }
+
+  return `<div class="empty card">
+    Loading appointments from MongoDB...
+  </div>`;
+}
+  const u = me();
+  const doc = docFor(u);
+  const t = todayStr();
+  console.log("Doctor schedule check:", {
+  today: t,
+  doctor: doc,
+  mongoAppointments: state.mongoAppointments
+});
+
+  // Use MongoDB appointments when available.
+  const mongoList = Array.isArray(state.mongoAppointments)
+    ? state.mongoAppointments
+    : [];
+
+  const list = mongoList
+    .filter(a => {
+      const doctorId =
+        a.doctor?._id ||
+        a.doctor?.id ||
+        a.doctor;
+
+      const matchesDoctor =
+        String(doctorId) === String(doc?.mongoId || doc?.userId || doc?.id) ||
+        String(a.doctor?.frontendId || "") === String(doc?.id || "");
+         const appointmentDate = a.appointmentDate
+        ? String(a.appointmentDate).slice(0, 10)
+        : "";
+        console.log("Schedule filter:", {
+  patient: a.patient?.name,
+  matchesDoctor,
+  appointmentDate,
+  today: t,
+  doc
+});
+
+     
+
+      return matchesDoctor && appointmentDate === t;
+    })
+    .sort((a, b) =>
+      String(a.appointmentTime || "").localeCompare(
+        String(b.appointmentTime || "")
+      )
+    );
+
+  const waiting = list.filter(a => a.status === "CHECKED_IN").length;
+  const done = list.filter(a => a.status === "COMPLETED").length;
+
+  return `<div class="grid2" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px">
+    ${statTile("calendar-days", list.length, "Today's appointments")}
+    ${statTile("hourglass", waiting, "Waiting now")}
+    ${statTile("stethoscope", list.filter(a => a.status === "IN_CONSULT").length, "In consultation")}
+    ${statTile("check-check", done, "Completed")}
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+    <h3 style="font-size:17px;margin:0">Today's clinic — ${fmtDateLong(t)}</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn btn-g btn-sm" href="#/app/schedule">
+        <i data-lucide="calendar-days"></i> My schedule
+      </a>
+      <a class="btn btn-g btn-sm" href="#/app/history">
+        <i data-lucide="history"></i> Appointment history
+      </a>
+    </div>
+  </div>
+
+  ${list.length
+    ? `<div style="display:grid;gap:12px">${list.map(a => {
+        const patient = a.patient || {};
+        const doctor = a.doctor || {};
+
+       
+return `
+  <div class="appt-card">
+    <div class="timeblock">
+      <div class="tt">${fmt12(a.appointmentTime || "00:00")}</div>
+      <div class="tiny">Today</div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <strong>${esc(patient.name || "Patient")}</strong>
+        ${badge(a.status || "BOOKED")}
+      </div>
+      <div class="tiny" style="margin-top:4px">
+        ${esc(a.department || "")} · Ref
+        <span class="mono">${esc(a._id || "")}</span>
+      </div>
+      ${a.reason
+        ? `<div class="tiny" style="margin-top:4px">Reason: ${esc(a.reason)}</div>`
+        : ""}
+    </div>
+  </div>
+`;
+
+      }).join("")}</div>`
+    : `<div class="empty card"><i data-lucide="coffee"></i>No appointments today. Enjoy the quiet.</div>`}
+
+  <p class="tiny" style="margin-top:16px">
+    <i data-lucide="info" style="width:13px;height:13px"></i>
+    ${doc?.leave?.length
+      ? `On leave: ${doc.leave.map(fmtDate).join(", ")}`
+      : "No approved leave upcoming."}
+  </p>`;
+}
+
+
+function dSchedule() {
+  
+  if (!state.mongoDoctorProfileLoaded) {
+    if (!state.mongoDoctorProfileLoading) {
+      loadMongoDoctorProfile();
+    }
+
+    return `<div class="empty card">
+      Loading doctor profile from MongoDB...
+    </div>`;
+  }
+
+  const u = me();
+
+  if (!u) {
+    return `<div class="empty">Please login again to view your schedule.</div>`;
+  }
+
+  const doc = docFor(u);
+
+  if (!doc || !doc.id) {
+    return `<div class="empty">Doctor profile not found. Please check the logged-in doctor account.</div>`;
+  }
+
+  // Handle missing schedule data safely
+  if (!doc.shifts || typeof doc.shifts !== "object") {
+    doc.shifts = {};
+  }
+
+  if (!Array.isArray(doc.leave)) {
+    doc.leave = [];
+  }
+
+  const week = weekDates();
+  const today = todayStr();
+
+if (state.mongoAppointments === null) {
+  if (!state.mongoAppointmentsLoading) {
+    loadMongoAppointments();
+  }
+
+  return `<div class="empty card">
+    Loading appointments from MongoDB...
+  </div>`;
+}
+
+const appointments = Array.isArray(state.mongoAppointments)
+  ? state.mongoAppointments
+  : [];
+  return `
+    <h3 style="font-size:17px;margin-bottom:12px">This week</h3>
+
+    <div class="weekgrid">
+      ${week.map(ds => {
+        const aps = appointments
+          .filter(a => {
+  if (!a) return false;
+
+ const mongoDoctorId =
+  a.doctor?._id ||
+  a.doctor?.id ||
+  a.doctor;
+
+const matchesDoctor =
+  String(mongoDoctorId || "") === String(doc.mongoId || doc._id || "") ||
+  String(a.doctor?.frontendId || "") === String(doc.id || "") ||
+  String(
+    a.doctor?.user?._id ||
+    a.doctor?.user?.id ||
+    ""
+  ) === String(doc.userId || "");
+  const appointmentDate = a.appointmentDate
+    ? String(a.appointmentDate).slice(0, 10)
+    : "";
+
+  return matchesDoctor && appointmentDate === ds;
+})
+          .sort((a, b) =>
+            (a.appointmentTime || a.start || "").localeCompare(b.appointmentTime || b.start || "")
+          );
+
+        return `
+          <div class="wday ${ds === today ? "today" : ""}">
+            <h4>${DAYS[dowOf(ds)]} ${dObj(ds).getDate()}</h4>
+
+            ${
+              aps.length
+                ? aps.map(a => {
+                    const patient = a.patient || userById(a.patientId);
+                    const patientName = (patient?.name || "").split(" ")[0];
+                    return `
+                      <div class="wchip b-${esc(a.status || "BOOKED")}">
+                        ${fmt12(a.appointmentTime || a.start || "")} · ${esc(patientName || "Patient")}
+                      </div>
+                    `;
+                  }).join("")
+                : `<div class="tiny">${esc(slotsFor(doc, ds)?.closed || "Open")}</div>`
+            }
+          </div>
+        `;
+      }).join("")}
+    </div>
+
+    <h3 style="font-size:17px;margin:28px 0 12px">My weekly hours</h3>
+
+    <form class="card" style="padding:22px;max-width:620px" data-form="hours">
+      ${[1, 2, 3, 4, 5, 6].map(d => {
+        const dayShifts = Array.isArray(doc.shifts[d])
+          ? doc.shifts[d]
+          : [];
+
+        const sh = dayShifts[0] || [540, 1020];
+        const on = dayShifts.length > 0;
+
+        return `
+          <div style="display:grid;grid-template-columns:56px 1fr 1fr 60px;gap:10px;align-items:center;margin-bottom:10px">
+            <strong style="font-size:13.5px">${DAYS[d]}</strong>
+
+            <input class="input" type="time" name="s${d}"
+              value="${fromMin(sh[0])}" ${on ? "" : "disabled"}>
+
+            <input class="input" type="time" name="e${d}"
+              value="${fromMin(sh[1])}" ${on ? "" : "disabled"}>
+
+            <label class="tiny" style="display:flex;gap:6px;align-items:center">
+              <input type="checkbox" name="on${d}"
+                ${on ? "checked" : ""} data-change="day-toggle">
+              Working
+            </label>
+          </div>
+        `;
+      }).join("")}
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <p class="tiny">
+          Sunday is always off. Slot length: ${getSettings().slotMins} min (admin-configured).
+        </p>
+        <button class="btn btn-p">Save hours</button>
+      </div>
+    </form>
+
+    <h3 style="font-size:17px;margin:28px 0 12px">Approved leave</h3>
+
+    <div class="card" style="padding:18px;max-width:620px">
+      ${
+        doc.leave.length
+          ? doc.leave.slice().sort().map(l => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line2)">
+                <span>${fmtDateLong(l)}</span>
+                <button class="btn btn-d btn-sm"
+                  data-action="leave-del" data-id="${l}">
+                  <i data-lucide="trash-2"></i>Remove
+                </button>
+              </div>
+            `).join("")
+          : `<p class="tiny">No leave scheduled.</p>`
+      }
+
+      <form data-form="leave" style="display:flex;gap:10px;margin-top:14px;align-items:end">
+        <div class="field" style="margin:0;flex:1">
+          <label class="label" for="lv">Request leave date</label>
+          <input id="lv" class="input" type="date" name="date" min="${today}">
+        </div>
+        <button class="btn btn-g">Add leave</button>
+      </form>
+
+      <p class="tiny" style="margin-top:10px">
+        Adding leave blocks all slots for that date and notifies affected patients.
+      </p>
+    </div>
+  `;
+}
+
+
+function dHistory() {
+  if (state.mongoAppointments === null) {
+    if (!state.mongoAppointmentsLoading) {
+      loadMongoAppointments();
+    }
+
+    return `<div class="empty card">
+      Loading appointment history from MongoDB...
+    </div>`;
+  }
+
+  const u = me();
+
+  if (!u) {
+    return `<div class="empty">Please login again to view history.</div>`;
+  }
+
+  const doc = docFor(u);
+
+  if (!doc) {
+    return `<div class="empty">
+      Doctor profile not found. Please check the doctor account.
+    </div>`;
+  }
+
+  const doctorIds = [
+    doc.mongoId,
+    doc._id,
+    doc.userId,
+    doc.frontendId,
+    doc.id
+  ]
+    .filter(Boolean)
+    .map(String);
+
+  const past = (state.mongoAppointments || [])
+    .filter(a => {
+      if (!a) return false;
+
+      const doctor = a.doctor && typeof a.doctor === "object"
+        ? a.doctor
+        : {};
+
+      const doctorUser = doctor.user && typeof doctor.user === "object"
+        ? doctor.user
+        : {};
+
+      const appointmentDoctorIds = [
+        a.doctorId,
+        a.doctor,
+        doctor._id,
+        doctor.id,
+        doctor.frontendId,
+        doctor.userId,
+        doctorUser._id,
+        doctorUser.id
+      ]
+        .filter(Boolean)
+        .map(String);
+
+      return (
+        appointmentDoctorIds.some(id => doctorIds.includes(id)) &&
+        ["COMPLETED", "CANCELLED", "NO_SHOW"].includes(a.status)
+      );
+    })
+    .sort((a, b) =>
+      String(b.appointmentDate || "").localeCompare(
+        String(a.appointmentDate || "")
+      ) ||
+      String(b.appointmentTime || "").localeCompare(
+        String(a.appointmentTime || "")
+      )
+    );
+
+  return past.length
+    ? `<div class="table-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Patient</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Clinical note</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${past.slice(0, 40).map(a => {
+              const patient =
+                a.patient && typeof a.patient === "object"
+                  ? a.patient
+                  : {};
+
+              const date = String(a.appointmentDate || "").slice(0, 10);
+              const time = a.appointmentTime || "";
+
+              return `<tr>
+                <td>${fmtDate(date)} ${fmt12(time)}</td>
+                <td>
+                  <strong>${esc(patient.name || "—")}</strong>
+                  <div class="tiny mono">${esc(a._id || a.id || "—")}</div>
+                </td>
+                <td>${esc(a.department || "—")}</td>
+                <td>${badge(a.status)}</td>
+                <td class="tiny" style="max-width:280px">
+                  ${esc(a.note || a.clinicalNote || "—")}
+                </td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>`
+    : `<div class="empty">
+         <i data-lucide="history"></i>
+         No history yet.
+       </div>`;
+}
+
+
+/* --- Reception --- */
+function rQueue(){
+  const t=todayStr();
+  if (state.mongoAppointments === null) {
+  if (!state.mongoAppointmentsLoading) {
+    loadMongoAppointments();
+  }
+
+  return `
+    <div class="card empty">
+      Loading today's OP queue from MongoDB...
+    </div>
+  `;
+}
+  const list = (state.mongoAppointments || [])
+  .filter(a => {
+    const date = String(a.appointmentDate || "").slice(0, 10);
+    return date === t && ACTIVE.includes(a.status);
+  })
+  .sort((a, b) => {
+    const priority = x =>
+      x.status === "IN_CONSULT" ? 0 :
+      x.status === "CHECKED_IN" ? 1 : 2;
+
+    return priority(a) - priority(b) ||
+      String(a.appointmentTime || "").localeCompare(
+        String(b.appointmentTime || "")
+      );
+  });
+  return `<div class="grid2" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+    ${statTile("hourglass",list.filter(a=>a.status==="CHECKED_IN").length,"Waiting")}${statTile("stethoscope",list.filter(a=>a.status==="IN_CONSULT").length,"In consultation")}${statTile("calendar-days",(state.mongoAppointments || []).filter(a=>String(a.appointmentDate || "").slice(0,10)===t).length,"Total today")}
+  </div>
+  <div class="card qlist">${list.length?list.map(a=>{
+    const pat = a.patient && typeof a.patient === "object" ? a.patient : {};
+const doctor = a.doctor && typeof a.doctor === "object" ? a.doctor : {};
+const docUser = doctor.user && typeof doctor.user === "object" ? doctor.user : {};
+const docName = docUser.name || doctor.name || "Doctor";
+const deptName = db.departments.find(d => String(d.id) === String(a.department))?.name || a.department || "Department";
+    const wait=a.checkinAt?Math.max(0,Math.round((Date.now()-a.checkinAt)/6e4)):null;
+    return`<div class="qrow">
+      ${a.tokenNumber ? `<div class="qnum">${a.tokenNumber}</div>` : `<div class="qnum" style="background:var(--teal-softer);color:var(--teal)">—</div>`}
+      <div style="flex:1;min-width:0"><strong>${esc(pat?.name||"—")}</strong> <span class="tiny mono">${esc(pat?.patientNo||"")}</span>${badge(a.status)}
+        <div class="tiny">${esc(docName)} · ${fmt12(a.appointmentTime || "")} · ${esc(deptName)}</div></div>
+      ${wait!==null?`<span class="tag" style="${wait>25?"background:var(--soft-wait);color:var(--amber)":""}">waiting ${wait} min</span>`:""}
+      ${statusActions(a)||`<span class="tiny">with doctor</span>`}
+    </div>`}).join(""):`<div class="empty"><i data-lucide="armchair"></i>Nobody in the queue right now.</div>`}</div>
+  <p class="tiny" style="margin-top:12px">Checked-in patients keep their token until the doctor completes the consult. Booked appointments can be checked in on their scheduled day.</p>`;
+}
+
+function rWalkin() {
+  const t = todayStr();
+  const departments = db.departments || [];
+  const doctors = db.doctors || [];
+  const selectedDeptId = departments[0]?.id || "";
+  const departmentDoctors = doctors.filter(
+    d => d.deptId === selectedDeptId
+  );
+
+  return `<div class="card" style="max-width:640px;padding:26px">
+    <h3 style="font-size:18px;margin-bottom:4px">Register a walk-in patient</h3>
+<p class="tiny" style="margin-bottom:18px">Creates the patient account using the patient's email and chosen password, and books the appointment at the desk.</p>
+    <form data-form="walkin" novalidate>
+      <div class="grid2" style="gap:12px">
+
+        <div class="field">
+          <label class="label" for="wn">Full name</label>
+          <input id="wn" class="input" name="name" required>
+          <span class="err" data-err="name"></span>
+        </div>
+
+        <div class="field">
+          <label class="label" for="wp">Phone</label>
+          <input id="wp" class="input" name="phone" required>
+          <span class="err" data-err="phone"></span>
+        </div>
+        
+<div class="field">
+  <label class="label" for="we">Email address</label>
+  <input
+    id="we"
+    class="input"
+    name="email"
+    type="email"
+    autocomplete="email"
+    required
+  >
+  <span class="err" data-err="email"></span>
+</div>
+
+<div class="field">
+  <label class="label" for="wpass">Set password</label>
+  <input
+    id="wpass"
+    class="input"
+    name="password"
+    type="password"
+    autocomplete="new-password"
+    minlength="8"
+    required
+  >
+  <span class="err" data-err="password"></span>
+</div>
+
+
+        <div class="field">
+          <label class="label" for="wa">Age</label>
+          <input id="wa" class="input" name="age" type="number" min="0" max="120" required>
+        </div>
+
+        <div class="field">
+          <label class="label" for="wg">Gender</label>
+          <select id="wg" class="input" name="gender">
+            <option value="">—</option>
+            <option>Female</option>
+            <option>Male</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="wd">Department</label>
+          <select id="wd" class="input" name="deptId" data-change="wi-dept" required>
+            ${departments.map(d =>
+              `<option value="${esc(d.id)}" ${d.id === selectedDeptId ? "selected" : ""}>${esc(d.name)}</option>`
+            ).join("")}
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="wdoc">Doctor</label>
+          <select id="wdoc" class="input" name="doctorId" data-change="wi-doc" required>
+            ${departmentDoctors.length
+              ? departmentDoctors.map(d =>
+                  `<option value="${esc(d.id)}">${esc(d.name)}</option>`
+                ).join("")
+              : `<option value="">No doctors in this department</option>`
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="wdate">Date</label>
+          <input id="wdate" class="input" type="date" name="date"
+            value="${t}" min="${t}"
+            max="${addDaysStr(t, getSettings().windowDays)}"
+            data-change="wi-date">
+        </div>
+
+        <div class="field">
+          <label class="label" for="wslot">Time slot</label>
+          <select id="wslot" class="input" name="start">
+            <option value="">Select a time slot</option>
+          </select>
+        </div>
+
+      </div>
+
+      <label class="tiny" style="display:flex;gap:8px;align-items:center;margin:8px 0 14px">
+        <input type="checkbox" name="checkin" checked>
+        Check the patient in immediately (queue token)
+      </label>
+
+      <button class="btn btn-p" type="submit">
+        <i data-lucide="user-plus"></i>Register & book
+      </button>
+    </form>
+  </div>`;
+  
+}
+function rSearch(){
+  const q=(state.q||"").trim();
+  let out="";
+  if(q){
+    const ql=q.toLowerCase();
+    const pats=db.users.filter(u=>u.role==="patient"&&(u.name.toLowerCase().includes(ql)||(u.patientNo||"").toLowerCase().includes(ql)||u.phone.includes(q)));
+    const byRef=db.appointments.filter(a=>a.ref.toLowerCase().includes(ql));
+    const patIds=new Set([...pats.map(p=>p.id),...byRef.map(a=>a.patientId)]);
+    const plist=db.users.filter(u=>u.role==="patient"&&patIds.has(u.id));
+    out=plist.length?plist.map(p=>{
+      const aps=db.appointments.filter(a=>a.patientId===p.id).sort((a,b)=>(b.date+b.start).localeCompare(a.date+a.start));
+      return`<div class="card" style="padding:20px;margin-bottom:14px">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">${monogram(p.name)}<div><strong>${esc(p.name)}</strong><div class="tiny mono">${esc(p.patientNo)} · ${esc(p.phone)}</div></div>
+        <span style="margin-left:auto" class="tag">${aps.length} appointment${aps.length!==1?"s":""}</span></div>
+        ${aps.length?`<div style="display:grid;gap:10px">${aps.slice(0,4).map(a=>apptCard(a)).join("")}</div>`:`<p class="tiny">No appointments on record.</p>`}</div>`}).join("")
+      :`<div class="empty"><i data-lucide="search-x"></i>No patients matched "${esc(q)}".</div>`;
+  }
+  return `<div class="filters"><div class="field grow"><label class="label" for="sq">Search patients</label>
+    <input id="sq" class="input" placeholder="Patient ID (P-1001), name, or booking ref (MC-…)" value="${esc(state.q||"")}" data-change="recsearch"></div></div>${out}`;
+}
+
+
+function rSched() {
+  const t = todayStr();
+
+  if (state.mongoAppointments === null) {
+    if (!state.mongoAppointmentsLoading) {
+      loadMongoAppointments();
+    }
+
+    return `
+      <h3 style="font-size:17px;margin-bottom:14px">
+        Full OP schedule — ${fmtDateLong(t)}
+      </h3>
+      <div class="empty card">Loading appointments from MongoDB...</div>
+    `;
+  }
+
+  if (state.mongoPublicDoctors === null) {
+    if (!state.mongoPublicDoctorsLoading) {
+      loadPublicMongoDoctors();
+    }
+
+    return `
+      <h3 style="font-size:17px;margin-bottom:14px">
+        Full OP schedule — ${fmtDateLong(t)}
+      </h3>
+      <div class="empty card">Loading doctors from MongoDB...</div>
+    `;
+  }
+
+  const mongoDocs = state.mongoPublicDoctors || [];
+
+  console.log("TODAY:", t);
+
+  console.log(
+    "MONGODB APPOINTMENTS SUMMARY:",
+    (state.mongoAppointments || []).map(a => ({
+      id: a._id,
+      patient: a.patient?.name,
+      doctorId: a.doctor?._id || a.doctor,
+      doctorName: a.doctor?.user?.name || a.doctor?.name,
+      department: a.department,
+      date: a.appointmentDate,
+      time: a.time,
+      status: a.status
+    }))
+  );
+
+  console.log(
+    "LOCAL SIVA APPOINTMENT:",
+    db.appointments.find(a => a.id === "9bc04ec7a99c")
+  );
+
+  console.log(
+    "MONGODB SIVA DOCTOR:",
+    mongoDocs.filter(d =>
+      String(d.user?.name || d.name || "").toLowerCase() === "siva"
+    )
+  );
+
+  return `<h3 style="font-size:17px;margin-bottom:14px">Full OP schedule — ${fmtDateLong(t)}</h3>
+  ${mongoDocs.map(doc => {
+    const doctorUser =
+      doc.user && typeof doc.user === "object" ? doc.user : {};
+
+    const doctorId = String(doc._id || doc.id || "");
+    const frontendId = String(doc.frontendId || "");
+    const doctorName = doctorUser.name || doc.name || "Doctor";
+    const departmentId = String(
+      doc.departmentId || doc.deptId || ""
+    );
+
+    const aps = (state.mongoAppointments || []).filter(a => {
+      const appointmentDoctorId = String(
+        a.doctor?._id ||
+        a.doctorId?._id ||
+        a.doctorId ||
+        a.doctor ||
+        ""
+      );
+
+      const appointmentDate = String(
+        a.appointmentDate || a.date || ""
+      ).slice(0, 10);
+
+      return (
+        (appointmentDoctorId === doctorId ||
+         (frontendId && appointmentDoctorId === frontendId)) &&
+        appointmentDate === t
+      );
+    }).sort((a, b) =>
+      String(a.appointmentTime || "").localeCompare(
+  String(b.appointmentTime || "")
+)
+    );
+
+    const department = db.departments.find(d =>
+      String(d.id) === departmentId
+    );
+
+    return `<div class="card" style="padding:18px;margin-bottom:14px">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
+        ${monogram(doctorName)}
+        <div>
+          <strong>${esc(doctorName)}</strong>
+          <div class="tiny">
+            ${esc(department?.name || doc.departmentName || "Department")}
+            · ${aps.length} appointments today
+          </div>
+        </div>
+      </div>
+      ${aps.length ? `
+        <div class="table-wrap" style="box-shadow:none">
+          <table class="tbl" style="min-width:520px">
+            <tbody>
+              ${aps.map(a => `
+                <tr>
+                  <td style="width:90px">
+                    <strong>${fmt12(a.appointmentTime || "")}</strong>
+                  </td>
+                  <td>${esc(a.patient?.name || a.patientName || "—")}</td>
+                  <td>${badge(a.status)}</td>
+                  <td>${a.queue ? `<span class="tag">#${a.queue}</span>` : ""}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      ` : `<p class="tiny">No appointments booked today.</p>`}
+    </div>`;
+  }).join("")}`;
+}
+
+
+/* --- Admin --- */
+function aOverview(){
+  const t=todayStr();
+  const trend=[];for(let i=6;i>=0;i--){const ds=addDaysStr(t,-i);trend.push({l:DAYS[dowOf(ds)]+" "+dObj(ds).getDate(),v:db.appointments.filter(a=>a.date===ds&&a.status!=="CANCELLED").length})}
+  const depData=db.departments.map(d=>({l:d.name,v:db.appointments.filter(a=>a.deptId===d.id).length})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  const slot=getSettings().slotMins;
+  const util=db.doctors.map(doc=>{
+    let avail=0,used=0;
+    for(let i=0;i<7;i++){const ds=addDaysStr(t,-i);const sh=doc.shifts[dowOf(ds)]||[];
+      if(doc.leave?.includes(ds))continue;
+      avail+=sh.reduce((s2,w2)=>s2+(w2[1]-w2[0]),0);
+      used+=db.appointments.filter(a=>a.doctorId===doc.id&&a.date===ds&&a.status!=="CANCELLED").length*slot;}
+    return{doc,pct:avail?Math.min(100,Math.round(used/avail*100)):0,used,avail};
+  }).sort((a,b)=>b.pct-a.pct);
+  return `<div class="grid2" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+    ${statTile("users",db.users.filter(u=>u.role==="patient").length,"Registered patients")}
+    ${statTile("stethoscope",db.doctors.length,"Doctors")}
+    ${statTile("calendar-check-2",db.appointments.filter(a=>a.date===t).length,"Today's appointments")}
+    ${statTile("hourglass",db.appointments.filter(a=>a.date===t&&a.status==="CHECKED_IN").length,"Waiting now")}
+  </div>
+  <div class="grid2" style="margin-bottom:20px">
+    <div class="card" style="padding:20px"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><strong>Appointments — last 7 days</strong><span class="tiny">all statuses except cancelled</span></div>${areaChart(trend)}</div>
+    <div class="card" style="padding:20px"><strong style="display:block;margin-bottom:12px">Department-wise bookings</strong>${barChart(depData)}</div>
+  </div>
+  <div class="grid2">
+    <div class="card" style="padding:20px"><strong style="display:block;margin-bottom:8px">Doctor utilisation — last 7 days</strong>
+      ${util.map(u2=>`<div class="util-row"><span style="width:150px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(u2.doc.name)}</span><div class="bar"><i style="width:${u2.pct}%"></i></div><span class="tiny" style="width:66px;text-align:right">${u2.pct}% · ${Math.round(u2.used/60)}h</span></div>`).join("")}
+    </div>
+    <div class="card" style="padding:20px"><strong style="display:block;margin-bottom:8px">Recent activity</strong>
+      ${db.audit.slice(0,7).map(l=>`<div style="padding:8px 0;border-bottom:1px dashed var(--line2)"><div style="font-size:13px"><strong>${esc(l.actor)}</strong> · <span class="mono" style="font-size:11px;color:var(--teal)">${esc(l.action)}</span></div><div class="tiny">${esc(l.detail)} · ${timeAgo(l.ts)}</div></div>`).join("")||`<p class="tiny">No activity.</p>`}
+      <a class="link" style="font-size:12.5px;display:inline-block;margin-top:10px" href="#/app/audit">Full audit log →</a></div>
+  </div>`;
+}
+
+async function loadMongoAppointments() {
+  if (state.mongoAppointmentsLoading) return;
+
+  state.mongoAppointmentsLoading = true;
+
+  try {
+    const response = await fetch("http://localhost:5000/api/appointments", {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("authToken")
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load appointments");
+    }
+
+    state.mongoAppointments = data.appointments || [];
+    console.log(
+  "MongoDB appointments for schedule:",
+  state.mongoAppointments
+);
+  
+} catch (error) {
+  console.error("MongoDB appointments error:", error);
+
+  toast(
+    "Could not load appointments: " + error.message,
+    "err"
+  );
+} 
+ finally {
+    state.mongoAppointmentsLoading = false;
+    render();
+  }
+}
+
+async function loadMongoPatients() {
+  if (state.mongoPatientsLoading) return;
+
+  state.mongoPatientsLoading = true;
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/auth/patients",
+      {
+        method: "GET",
+        headers: {
+          "Authorization":
+            "Bearer " + localStorage.getItem("authToken")
+        }
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to load registered patients"
+      );
+    }
+
+    state.mongoPatients = data.patients || [];
+  } catch (error) {
+    console.error("MongoDB patients error:", error);
+    toast("Could not load patients: " + error.message, "err");
+  } finally {
+    state.mongoPatientsLoading = false;
+    render();
+  }
+}
+
+async function loadMongoNotifications() {
+  if (state.mongoNotificationsLoading) return;
+
+  state.mongoNotificationsLoading = true;
+
+  try {
+    const response = await fetch("http://localhost:5000/api/appointments/notifications", {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("authToken")
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load notifications");
+    }
+
+    state.mongoNotifications = data.notifications || [];
+  } catch (error) {
+    console.error("MongoDB notifications error:", error);
+    toast("Could not load notifications from MongoDB.", "err");
+    state.mongoNotifications = [];
+  } finally {
+    state.mongoNotificationsLoading = false;
+    render();
+  }
+}
+
+async function loadMongoDoctors() {
+  if (state.mongoDoctorsLoading) return;
+
+  state.mongoDoctorsLoading = true;
+
+  try {
+    const response = await fetch("http://localhost:5000/api/doctors", {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("authToken")
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load doctors");
+    }
+
+    state.mongoDoctors = data.doctors || [];
+  } catch (error) {
+    console.error("MongoDB doctors error:", error);
+    toast("Could not load doctors: " + error.message, "err");
+  } finally {
+    state.mongoDoctorsLoading = false;
+    render();
+  }
+}
+
+async function loadPublicMongoDoctors() {
+  if (state.mongoPublicDoctorsLoading) return;
+
+  state.mongoPublicDoctorsLoading = true;
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/doctors/public"
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to load public doctors"
+      );
+    }
+
+    state.mongoPublicDoctors = data.doctors || [];
+  } catch (error) {
+    console.error("Public doctors error:", error);
+    state.mongoPublicDoctors = [];
+  } finally {
+    state.mongoPublicDoctorsLoading = false;
+    render();
+  }
+}
+
+function aAppts() {
+  if (state.mongoAppointments === null) {
+    if (!state.mongoAppointmentsLoading) {
+      loadMongoAppointments();
+    }
+
+    return `<div class="empty">Loading appointments from MongoDB...</div>`;
+  }
+
+  const f = state.af;
+  const per = 8;
+
+  let list = (state.mongoAppointments || []).slice().sort(
+    (a, b) => new Date(b.appointmentDate) - new Date(a.appointmentDate)
+  );
+
+  // Filter by status
+  if (f.status) {
+    list = list.filter(a => a.status === f.status);
+  }
+
+  // Filter by department
+  if (f.deptId) {
+    list = list.filter(a => a.department === f.deptId);
+  }
+
+  // Filter by doctor
+  if (f.doctorId) {
+    list = list.filter(a =>
+      a.doctor?._id === f.doctorId ||
+      a.doctor?.frontendId === f.doctorId
+    );
+  }
+
+  // Filter by date range
+  if (f.from) {
+    list = list.filter(a =>
+      new Date(a.appointmentDate) >= new Date(f.from + "T00:00:00")
+    );
+  }
+
+  if (f.to) {
+    list = list.filter(a =>
+      new Date(a.appointmentDate) < new Date(f.to + "T23:59:59.999")
+    );
+  }
+
+  // Search by appointment ID or patient name
+  if (f.q) {
+    const q = f.q.toLowerCase();
+
+    list = list.filter(a =>
+      String(a._id || "").toLowerCase().includes(q) ||
+      (a.patient?.name || "").toLowerCase().includes(q)
+    );
+  }
+
+  const pages = Math.max(1, Math.ceil(list.length / per));
+  state.apage = Math.min(state.apage, pages);
+
+  const page = list.slice(
+    (state.apage - 1) * per,
+    state.apage * per
+  );
+
+  return `<div class="filters">
+    <div class="field grow">
+      <label class="label" for="fq">Search ref / patient</label>
+      <input id="fq" class="input" value="${esc(f.q)}" data-change="af-q">
+    </div>
+
+    <div class="field">
+      <label class="label" for="fs">Status</label>
+      <select id="fs" class="input" data-change="af-status">
+        <option value="">All</option>
+        ${Object.keys(STATUS_META).map(s2 =>
+          `<option ${f.status === s2 ? "selected" : ""} value="${s2}">${STATUS_META[s2][0]}</option>`
+        ).join("")}
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="label" for="fd">Department</label>
+      <select id="fd" class="input" data-change="af-dept">
+        <option value="">All</option>
+        ${db.departments.map(d =>
+          `<option ${f.deptId === d.id ? "selected" : ""} value="${d.id}">${esc(d.name)}</option>`
+        ).join("")}
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="label" for="fdoc">Doctor</label>
+      <select id="fdoc" class="input" data-change="af-doc">
+        <option value="">All</option>
+        ${db.doctors.map(d =>
+          `<option ${f.doctorId === d.id ? "selected" : ""} value="${d.id}">${esc(d.name)}</option>`
+        ).join("")}
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="label" for="ff">From</label>
+      <input id="ff" class="input" type="date" value="${esc(f.from)}" data-change="af-from">
+    </div>
+
+    <div class="field">
+      <label class="label" for="ft">To</label>
+      <input id="ft" class="input" type="date" value="${esc(f.to)}" data-change="af-to">
+    </div>
+
+    <button class="btn btn-g" data-action="export-csv">
+      <i data-lucide="download"></i>CSV
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Appointment ID</th>
+          <th>Date · Time</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Source</th>
+          <th>Fee</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${page.length ? page.map(a => {
+          const patientName = a.patient?.name || "—";
+          const doctorName = a.doctor?.user?.name || "—";
+          const appointmentDate = a.appointmentDate
+            ? String(a.appointmentDate).slice(0, 10)
+            : "";
+          const appointmentTime = a.appointmentTime || "—";
+          const status = a.status || "BOOKED";
+
+          return `<tr>
+            <td class="mono tiny">${esc(a._id || "—")}</td>
+            <td>
+              ${appointmentDate ? fmtDate(appointmentDate) : "—"}
+              <div class="tiny">${esc(appointmentTime)}</div>
+            </td>
+            <td>
+              <strong>${esc(patientName)}</strong>
+              <div class="tiny">${esc(a.patient?.email || "")}</div>
+            </td>
+            <td>${esc(doctorName)}</td>
+            <td class="tiny">Online</td>
+            <td>—</td>
+            <td>${badge(status)}</td>
+            <td>
+              <button class="icon-btn"
+                style="width:30px;height:30px"
+                data-action="appt-view"
+                data-id="${esc(a._id || "")}"
+                title="View history">
+                <i data-lucide="eye" style="width:14px;height:14px"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join("") : `
+          <tr>
+            <td colspan="8">
+              <div class="empty">
+                <i data-lucide="calendar-x"></i>
+                No appointments match these filters.
+              </div>
+            </td>
+          </tr>
+        `}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pager">
+    <button data-action="pg" data-p="appts" data-d="-1"
+      ${state.apage <= 1 ? "disabled" : ""}>
+      <i data-lucide="chevron-left"></i>
+    </button>
+
+    <span>Page ${state.apage} of ${pages} · ${list.length} records</span>
+
+    <button data-action="pg" data-p="appts" data-d="1"
+      ${state.apage >= pages ? "disabled" : ""}>
+      <i data-lucide="chevron-right"></i>
+    </button>
+  </div>`;
+}
+
+
+function aDoctors() {
+  if (state.mongoDoctors === null) {
+    if (!state.mongoDoctorsLoading) {
+      loadMongoDoctors();
+    }
+
+    return `<div class="empty card">
+      Loading doctors from MongoDB...
+    </div>`;
+  }
+
+  const doctors = state.mongoDoctors || [];
+
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <p class="muted">${doctors.length} consultants on roster.</p>
+    <button class="btn btn-p" data-action="doc-new">
+      <i data-lucide="user-plus"></i>Add doctor
+    </button>
+  </div>
+  <div class="table-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Doctor</th>
+          <th>Department</th>
+          <th>Qualifications</th>
+          <th>Fee</th>
+          <th>Weekly hours</th>
+          <th>Leave</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${doctors.map(d => {
+          const user = d.user && typeof d.user === "object" ? d.user : {};
+          const name = user.name || d.name || "Unnamed doctor";
+          const shifts = d.shifts || {};
+          const leave = Array.isArray(d.leave) ? d.leave : [];
+          const hrs = Object.values(shifts).reduce(
+            (total, week) => total + (Array.isArray(week)
+              ? week.reduce((sum, slot) => sum + (slot[1] - slot[0]), 0)
+              : 0),
+            0
+          );
+
+          return `<tr>
+            <td style="display:flex;gap:10px;align-items:center">
+              ${monogram(name)}
+              <div>
+                <strong>${esc(name)}</strong>
+                <div class="tiny">${d.experience ?? d.exp ?? 0} yrs</div>
+              </div>
+            </td>
+            <td><span class="tag">${esc(deptById(d.departmentId || d.deptId)?.name || "—")}</span></td>
+            <td class="tiny">${esc(d.qualification || d.quals || "—")}</td>
+            <td>${money(d.fee || 0)}</td>
+            <td>${Math.round(hrs / 60)}h / week</td>
+            <td class="tiny">${leave.length ? leave.map(fmtDate).join(", ") : "—"}</td>
+            <td style="white-space:nowrap">
+              <button class="icon-btn" style="width:30px;height:30px" data-action="doc-edit" data-id="${d.frontendId || d.id || d._id}">
+                <i data-lucide="pencil" style="width:14px;height:14px"></i>
+              </button>
+              <button class="icon-btn" style="width:30px;height:30px" data-action="doc-del" data-id="${d.frontendId || d.id || d._id}">
+                <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+  
+function aDepts(){
+    if (state.mongoDoctors === null) {
+    if (!state.mongoDoctorsLoading) {
+      loadMongoDoctors();
+    }
+  }  
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><p class="muted">${db.departments.length} departments.</p><button class="btn btn-p" data-action="dept-new"><i data-lucide="plus"></i>Add department</button></div>
+  <div class="table-wrap"><table class="tbl"><thead><tr><th>Department</th><th>Description</th><th>Doctors</th><th>Appointments</th><th></th></tr></thead><tbody>
+    ${db.departments.map(d=>`<tr><td style="display:flex;gap:10px;align-items:center"><span class="di" style="width:36px;height:36px;border-radius:10px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center"><i data-lucide="${d.icon}" style="width:16px;height:16px"></i></span><strong>${esc(d.name)}</strong></td>
+    <td class="tiny">${esc(d.desc)}</td><td>${state.mongoDoctors === null
+  ? "Loading..."
+  : state.mongoDoctors.filter(x =>
+      String(x.departmentId || x.deptId || "") === String(d.id)
+    ).length}</td><td>${state.mongoAppointments === null
+  ? "Loading..."
+  : state.mongoAppointments.filter(a =>
+      String(a.deptId) === String(d.id)
+    ).length}</td>
+    <td><button class="icon-btn" style="width:30px;height:30px" data-action="dept-del" data-id="${d.id}"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button></td></tr>`).join("")}
+  </tbody></table></div>`;
+}
+
+function aPeople() {
+  const recs = db.users.filter(u => u.role === "reception");
+
+  if (state.mongoPatients === null) {
+    if (!state.mongoPatientsLoading) {
+      loadMongoPatients();
+    }
+
+    return `
+      <div style="margin-bottom:28px">
+        <h3 style="font-size:17px;margin-bottom:12px">Reception staff</h3>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead>
+              <tr><th>Name</th><th>Email (login)</th><th>Phone</th></tr>
+            </thead>
+            <tbody>
+              ${recs.map(r => `
+                <tr>
+                  <td><strong>${esc(r.name)}</strong></td>
+                  <td class="tiny mono">${esc(r.email)}</td>
+                  <td class="tiny">${esc(r.phone || "—")}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="empty card">Loading registered patients from MongoDB...</div>
+    `;
+  }
+
+  const patients = state.mongoPatients || [];
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-size:17px">Reception staff</h3>
+      <button class="btn btn-p btn-sm" data-action="staff-new">
+        <i data-lucide="user-plus"></i>Add receptionist
+      </button>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:28px">
+      <table class="tbl">
+        <thead>
+          <tr><th>Name</th><th>Email (login)</th><th>Phone</th></tr>
+        </thead>
+        <tbody>
+          ${recs.map(r => `
+            <tr>
+              <td><strong>${esc(r.name)}</strong></td>
+              <td class="tiny mono">${esc(r.email)}</td>
+              <td class="tiny">${esc(r.phone || "—")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:17px;margin-bottom:12px">
+      Registered patients (${patients.length})
+    </h3>
+
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr><th>Patient ID</th><th>Name</th><th>Phone</th><th>Appointments</th></tr>
+        </thead>
+        <tbody>
+          ${patients.length ? patients.map(p => `
+            <tr>
+              <td class="mono tiny">${esc(String(p._id || "—"))}</td>
+              <td>
+                <strong>${esc(p.name || "—")}</strong>
+                <div class="tiny">${esc(p.email || "")}</div>
+              </td>
+              <td class="tiny">${esc(p.phone || "—")}</td>
+              <td>—</td>
+            </tr>
+          `).join("") : `
+            <tr>
+              <td colspan="4" class="tiny">No registered patients found in MongoDB.</td>
+            </tr>
+          `}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function aSettings(){
+  const s=getSettings();
+  return `<div class="grid2" style="align-items:start">
+  <form class="card" style="padding:26px" data-form="settings">
+    <h3 style="font-size:18px;margin-bottom:16px">Scheduling rules</h3>
+    <div class="field"><label class="label" for="sn">Hospital name</label><input id="sn" class="input" name="hospitalName" value="${esc(s.hospitalName)}"></div>
+    <div class="grid2" style="gap:12px">
+      <div class="field"><label class="label" for="ss">Slot duration</label><select id="ss" class="input" name="slotMins">${[10,15,20,30].map(v=>`<option value="${v}" ${s.slotMins===v?"selected":""}>${v} minutes</option>`).join("")}</select></div>
+      <div class="field"><label class="label" for="sw">Booking window</label><select id="sw" class="input" name="windowDays">${[7,14,21,30].map(v=>`<option value="${v}" ${s.windowDays===v?"selected":""}>${v} days ahead</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label class="label" for="sc">Cancellation / reschedule cutoff</label><select id="sc" class="input" name="cutoffHours">${[1,2,4,6].map(v=>`<option value="${v}" ${s.cutoffHours===v?"selected":""}>${v} hours before slot</option>`).join("")}</select></div>
+    <button class="btn btn-p">Save settings</button>
+  </form>
+  <div>
+    <div class="card" style="padding:22px;margin-bottom:16px"><strong>Notifications & delivery</strong>
+      <p class="tiny" style="margin-top:8px">In-app notifications are active for bookings, cancellations, reschedules, status changes and queue tokens. Email/SMS providers are <strong>not configured</strong> in this build — the system never pretends a message was delivered. In the full-stack version, plug SMTP/Twilio credentials into the server's notification service.</p></div>
+    <div class="card" style="padding:22px;border-color:var(--red)"><strong style="color:var(--red)">Danger zone</strong>
+      <p class="tiny" style="margin:8px 0 14px">Regenerate the entire demo dataset (today's live OP board, history, accounts). Useful before a viva demonstration.</p>
+      <button class="btn btn-d" data-action="reseed"><i data-lucide="rotate-ccw"></i>Reset demo data</button></div>
+  </div></div>`;
+}
+function aAudit(){
+  return `<div class="table-wrap"><table class="tbl"><thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Detail</th></tr></thead><tbody>
+    ${db.audit.slice(0,80).map(l=>`<tr><td class="tiny" style="white-space:nowrap">${new Date(l.ts).toLocaleString()}</td><td><strong>${esc(l.actor)}</strong></td><td><span class="mono tiny" style="color:var(--teal)">${esc(l.action)}</span></td><td class="tiny">${esc(l.detail)}</td></tr>`).join("")}
+  </tbody></table></div>`;
+}
+
+/* ---------- 12. Render dispatcher ---------- */
+
+function render(){
+  const seg = route();
+  let html = "";
+
+  const page = seg[0];
+
+  if (
+    (page === "doctors" || page === "book") &&
+    state.mongoPublicDoctors === null &&
+    !state.mongoPublicDoctorsLoading
+  ) {
+    loadPublicMongoDoctors();
+  }
+
+  const[u0]=seg;
+  if(!u0)html=vHome();
+  else if(u0==="departments")html=vDepartments();
+  else if(u0==="doctors")html=vDoctors(Object.fromEntries(new URLSearchParams(seg.slice(1).join("/"))));
+  else if(u0==="about")html=vAbout();
+  else if(u0==="contact")html=vContact();
+  else if(u0==="login")html=vLogin();
+  else if(u0==="register")html=vRegister();
+  else if(u0==="book")html=vBook(Object.fromEntries(new URLSearchParams(seg.slice(1).join("/"))));
+  else if(u0==="confirmation")html=vConfirm(seg[1]||"");
+  else if(u0==="app")html=vApp(seg[1]);
+  else html=vHome();
+  $("#app").innerHTML=html;refreshIcons();
+}
+
+/* ---------- 13. Actions (delegated) ---------- */
+const ACTIONS={
+  theme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==="dark"?"":"dark";localStorage.setItem("mc.theme",h.dataset.theme);render();},
+  mobnav(){const m=$("#mobnav");m.innerHTML=m.innerHTML?"":`<div style="border-top:1px solid var(--line);padding:10px 24px 18px;display:grid;gap:12px;font-weight:600">${[["","Home"],["departments","Departments"],["doctors","Doctors"],["about","About"],["contact","Contact"]].map(l=>`<a href="#/${l[0]}">${l[1]}</a>`).join("")}</div>`;},
+  side(){state.sideOpen=!state.sideOpen;render();},
+  logout(){audit("auth.logout","",me()?.name);db.session=null;save();toast("Signed out. Take care!");location.hash="#/";render();},
+  bell(){state.notifOpen=!state.notifOpen;render();},
+  "notif-read"(t){const n=db.notifications.find(x=>x.id===t.dataset.id);if(n)n.read=true;save();render();},
+  "notif-all"(){const u=me();db.notifications.forEach(n=>{if(n.userId===u.id)n.read=true});save();toast("All notifications marked read");render();},
+  "fill-login"(t){state.loginEmail=t.dataset.email;location.hash="#/login";setTimeout(()=>{const f=$('form[data-form="login"]');if(f){f.email.value=t.dataset.email;f.password.value=t.dataset.pass;}},30);},
+  /* booking wizard */
+  "wiz-dept"(t){state.wiz={step:2,deptId:t.dataset.id};render();},
+  "wiz-doc"(t){state.wiz.doctorId=t.dataset.id;state.wiz.step=3;state.wiz.date=null;state.wiz.slot=null;render();},
+  "wiz-date"(t){state.wiz.date=t.dataset.id;state.wiz.slot=null;render();},
+  "wiz-slot"(t){state.wiz.slot=t.dataset.id;render();},
+  "wiz-next"(){state.wiz.step=Math.min(4,(state.wiz.step||1)+1);render();},
+
+"wiz-back"() {
+  if ((state.wiz.step || 1) === 1) {
+    location.hash = "#/";
+    state.wiz = {};
+    render();
+    return;
+  }
+
+  state.wiz.step = state.wiz.step - 1;
+  render();
+},
+ 
+"wiz-confirm": async function () {
+  const w = state.wiz;
+  const u = me();
+
+  if (!w.slot) {
+    toast("Pick a time slot first", "err");
+    return;
+  }
+
+  if (!u || u.role !== "patient") {
+    toast("Please log in with a patient account to book an appointment.", "err");
+    return;
+  }
+
+  const doc = docById(w.doctorId);
+
+  if (!doc) {
+    toast("Doctor not found.", "err");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:5000/api/appointments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("authToken")
+      },
+      body: JSON.stringify({
+        doctor: w.doctorId,
+        department: doc.deptId,
+        appointmentDate: w.date,
+        appointmentTime: w.slot,
+        reason: w.reason || ""
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast(data.message || "Could not book appointment.", "err");
+      return;
+    }
+
+    // Keep the existing dashboard and confirmation flow working.
+    const a = createBooking({
+      patientId: u.id,
+      doctorId: w.doctorId,
+      date: w.date,
+      start: w.slot,
+      type: w.type,
+      reason: w.reason,
+      source: "online",
+      actor: "patient"
+    });
+
+    save();
+    state.wiz = {};
+    location.hash = "#/confirmation/" + a.ref;
+    render();
+    toast("Appointment confirmed — ref " + a.ref);
+  } catch (error) {
+    console.error("Appointment booking failed:", error);
+    toast("Could not connect to the booking server. Please try again.", "err");
+  }
+},
+
+  ticket(t){location.hash="#/confirmation/"+apById(t.dataset.id).ref;},
+  print(){window.print();},
+  cancel(t){
+    const a=apById(t.dataset.id);
+    openModal(`<div class="m-head"><h3>Cancel this appointment?</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div>
+      <p class="muted">${esc(docById(a.doctorId).name)} · ${fmtDateLong(a.date)} at ${fmt12(a.start)}<br>Ref <span class="mono">${a.ref}</span></p>
+      <p class="tiny" style="margin:12px 0 18px">Cancelling releases the slot for other patients. This follows the hospital's cancellation policy.</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-g" data-action="modal-close">Keep it</button>
+      <button class="btn btn-d" data-action="cancel-yes" data-id="${a.id}"><i data-lucide="x"></i>Yes, cancel</button></div>`);
+  },
+  "cancel-yes"(t){try{cancelAppt(t.dataset.id,me().role==="patient"?"patient":me().name);closeModal();toast("Appointment cancelled — slot released");render();}catch(e){toast(e,"err")}},
+  resch(t){
+    const a=apById(t.dataset.id);const doc=docById(a.doctorId);
+    openModal(`<div class="m-head"><h3>Reschedule</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div>
+      <p class="tiny" style="margin-bottom:14px">${esc(doc.name)} · currently ${fmtDate(a.date)} ${fmt12(a.start)} · Ref <span class="mono">${a.ref}</span></p>
+      <div class="field"><label class="label" for="rd">New date</label><input id="rd" class="input" type="date" min="${todayStr()}" max="${addDaysStr(todayStr(),getSettings().windowDays)}" value="${a.date}" data-change="resch-date" data-id="${a.id}"></div>
+      <div class="field"><label class="label" for="rs">New time</label><select id="rs" class="input" data-change="resch-slot">${reschOptions(doc,a)}</select></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px"><button class="btn btn-g" data-action="modal-close">Close</button>
+      <button class="btn btn-p" data-action="resch-yes" data-id="${a.id}"><i data-lucide="calendar-sync"></i>Move appointment</button></div>`);
+  },
+  "resch-yes"(t){
+    const d=$("#rd").value,s=$("#rs").value;
+    if(!s){toast("Pick a new time","err");return}
+    try{rescheduleAppt(t.dataset.id,d,s,me().role==="patient"?"patient":me().name);closeModal();toast("Rescheduled to "+fmtDate(d)+" "+fmt12(s));render();}catch(e){toast(e,"err")}
+  },
+  
+setstatus: async function(t) {
+  const next = t.dataset.next;
+  const id = t.dataset.id;
+  const token = localStorage.getItem("authToken");
+
+  if (next === "NO_SHOW") {
+    toast("No-show confirmation needs to be handled before updating MongoDB.", "err");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/appointments/${encodeURIComponent(id)}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: next })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Could not update appointment status");
+    }
+
+    state.mongoAppointments = null;
+    state.mongoAppointmentsLoading = false;
+
+    toast("Appointment marked " + next.toLowerCase().replace("_", " "));
+    render();
+  } catch (error) {
+    toast(error.message || String(error), "err");
+  }
+},
+
+  "noshow-yes"(t){try{setStatus(t.dataset.id,"NO_SHOW",me().name);closeModal();toast("Marked no-show");render();}catch(e){toast(e,"err")}},
+  checkin(t){try{checkIn(t.dataset.id,me().name);toast("Checked in — queue token assigned");render();}catch(e){toast(e,"err")}},
+  
+note(t){
+    const a = apById(t.dataset.id);
+    if (!a) {
+      toast("Appointment not found");
+      return;
+    }
+
+    const patient = userById(a.patientId);
+    if (!patient) {
+      toast("Patient details not found");
+      return;
+    }
+
+    openModal(`<div class="m-head">
+        <h3>Consultation note</h3>
+        <button class="x" data-action="modal-close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="card" style="padding:14px;margin-bottom:14px">
+        <h4 style="margin:0 0 10px">Patient details</h4>
+        <p class="tiny">Patient name: <strong>${esc(patient.name || "—")}</strong></p>
+        <p class="tiny">Patient ID: <strong>${esc(patient.patientNo || "—")}</strong></p>
+        <p class="tiny">Phone: <strong>${esc(patient.phone || "—")}</strong></p>
+        <p class="tiny">Age: <strong>${esc(patient.age || "—")}</strong></p>
+        <p class="tiny">Gender: <strong>${esc(patient.gender || "—")}</strong></p>
+        <p class="tiny">Email: <strong>${esc(patient.email || "—")}</strong></p>
+      </div>
+
+      <p class="tiny" style="margin-bottom:12px">
+        Appointment: ${fmtDate(a.date)} at ${fmt12(a.start)}
+        · Ref <span class="mono">${esc(a.ref || "—")}</span>
+      </p>
+
+      ${a.reason ? `<p class="tiny">Reason for visit: ${esc(a.reason)}</p>` : ""}
+
+      <div class="field">
+        <label class="label" for="nt">Clinical note (stored with the appointment only)</label>
+        <textarea id="nt" class="input" style="min-height:110px">${esc(a.note || "")}</textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-g" data-action="modal-close">Cancel</button>
+        <button class="btn btn-p" data-action="note-save" data-id="${a.id}">Save note</button>
+      </div>`);
+  },
+
+  "note-save"(t){const a=apById(t.dataset.id);a.note=$("#nt").value.trim();a.history.push({ts:Date.now(),status:a.status,by:me().name,note:"Note updated"});audit("note.update",a.ref,me().name);save();closeModal();toast("Note saved");render();},
+  /* doctor schedule */
+  "leave-del"(t){const doc=docFor(me());doc.leave=doc.leave.filter(l=>l!==t.dataset.id);audit("leave.remove",t.dataset.id,me().name);save();toast("Leave removed — slots reopened");render();notifyPatientsOfChange(doc,[t.dataset.id]);},
+  /* admin doctors */
+  "doc-new"(){docModal(null);},
+  "doc-edit"(t){docModal(docById(t.dataset.id));},
+  "doc-del"(t){
+    const d=docById(t.dataset.id);
+    const future=db.appointments.filter(a=>a.doctorId===d.id&&ACTIVE.includes(a.status)&&a.date>=todayStr()).length;
+    if(future)return toast(`Cannot delete — ${future} active future appointment(s). Cancel them first.`,"err");
+    openModal(`<div class="m-head"><h3>Remove ${esc(d.name)}?</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div><p class="tiny" style="margin-bottom:16px">Past history is preserved; the doctor's login is disabled.</p><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-g" data-action="modal-close">Back</button><button class="btn btn-d" data-action="doc-del-yes" data-id="${d.id}">Remove</button></div>`);
+  },
+  "doc-del-yes"(t){
+    const d=docById(t.dataset.id);
+    db.doctors=db.doctors.filter(x=>x.id!==d.id);
+    const u=db.users.find(x=>x.id===d.userId);if(u)db.users=db.users.filter(x=>x.id!==u.id);
+    audit("doctor.delete",d.name,me().name);save();closeModal();toast("Doctor removed");render();
+  },
+  "dept-new"(){openModal(`<div class="m-head"><h3>Add department</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div>
+    <form data-form="dept"><div class="field"><label class="label" for="dn">Name</label><input id="dn" class="input" name="name" required></div>
+    <div class="field"><label class="label" for="di2">Icon</label><select id="di2" class="input" name="icon">${["heart-pulse","baby","sparkles","bone","brain","stethoscope","ear","eye","activity","syringe"].map(i=>`<option>${i}</option>`).join("")}</select></div>
+    <div class="field"><label class="label" for="dd2">Description</label><input id="dd2" class="input" name="desc" required></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center">Add department</button></form>`);},
+  "dept-del"(t){
+    const d=deptById(t.dataset.id);
+    if(db.doctors.some(x=>x.deptId===d.id))return toast("Move or remove this department's doctors first","err");
+    db.departments=db.departments.filter(x=>x.id!==d.id);audit("department.delete",d.name,me().name);save();toast("Department removed");render();
+  },
+  "staff-new"(){openModal(`<div class="m-head"><h3>Add receptionist</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div>
+    <form data-form="staff"><div class="field"><label class="label" for="stn">Full name</label><input id="stn" class="input" name="name" required></div>
+    <div class="field"><label class="label" for="ste">Email (login)</label><input id="ste" class="input" name="email" type="email" required></div>
+    <div class="field"><label class="label" for="stp">Phone</label><input id="stp" class="input" name="phone"></div>
+    <div class="field">
+  <label class="label" for="stpass">Login password (minimum 8 characters)</label>
+  <input id="stpass" class="input" name="password" type="password" minlength="8" required>
+</div>
+    <button class="btn btn-p" style="width:100%;justify-content:center">Create account</button></form>`);},
+  reseed(){openModal(`<div class="m-head"><h3>Reset all demo data?</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div><p class="tiny" style="margin-bottom:16px">Everything you've entered is wiped and a fresh dataset is generated.</p><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-g" data-action="modal-close">Back</button><button class="btn btn-d" data-action="reseed-yes">Reset now</button></div>`);},
+  "reseed-yes"(){resetDemo();},
+  "export-csv"(){
+    const f=state.af;
+    let list=db.appointments.slice().sort((a,b)=>(b.date+b.start).localeCompare(a.date+a.start));
+    if(f.status)list=list.filter(a=>a.status===f.status);if(f.deptId)list=list.filter(a=>a.deptId===f.deptId);
+    if(f.doctorId)list=list.filter(a=>a.doctorId===f.doctorId);if(f.from)list=list.filter(a=>a.date>=f.from);if(f.to)list=list.filter(a=>a.date<=f.to);
+    const rows=[["ref","date","start","end","patient","patient_id","doctor","department","type","source","status","queue","fee"]].concat(
+      list.map(a=>[a.ref,a.date,a.start,a.end,userById(a.patientId)?.name||"",userById(a.patientId)?.patientNo||"",docById(a.doctorId)?.name||"",deptById(a.deptId)?.name||"",a.type,a.source,a.status,a.queue||"",a.fee]));
+    const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const url=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));const el=document.createElement("a");el.href=url;el.download="medicare-appointments.csv";el.click();URL.revokeObjectURL(url);
+    audit("report.export",list.length+" rows",me().name);save();toast(`Exported ${list.length} rows to CSV`);
+  },
+  "appt-view"(t){
+    const a=apById(t.dataset.id);
+    openModal(`<div class="m-head"><h3 class="mono" style="font-size:18px">${a.ref}</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div>
+      <p class="muted" style="margin-bottom:14px">${esc(userById(a.patientId)?.name)} with ${esc(docById(a.doctorId).name)}<br>${fmtDateLong(a.date)} · ${fmt12(a.start)}–${fmt12(a.end)}</p>
+      <strong style="font-size:13.5px">Status history</strong>
+      ${a.history.map(h=>`<div class="checkline"><i data-lucide="check" class="ok" style="width:14px;height:14px"></i>${STATUS_META[h.status]?STATUS_META[h.status][0]:h.status} — ${new Date(h.ts).toLocaleString()} by ${esc(h.by)}${h.note?` · ${esc(h.note)}`:""}</div>`).join("")}
+      ${a.note?`<div class="hr"></div><strong style="font-size:13.5px">Clinical note</strong><p class="tiny" style="margin-top:6px">${esc(a.note)}</p>`:""}`);
+  },
+  pg(t){if(t.dataset.p==="appts")state.apage=Math.max(1,state.apage+ +t.dataset.d);render();},
+  "modal-close":closeModal,
+};
+function reschOptions(doc,a){
+  const r=slotsFor(doc,$("#rd")?$("#rd").value:a.date,a.id);
+  if(r.closed)return`<option value="">${esc(r.closed)}</option>`;
+  const av=r.slots.filter(x=>x.available);
+  return av.length?av.map(x=>`<option value="${x.start}">${fmt12(x.start)} – ${fmt12(x.end)}</option>`).join(""):`<option value="">No open slots that day</option>`;
+}
+function notifyPatientsOfChange(doc,dates){
+  const affected=db.appointments.filter(a=>a.doctorId===doc.id&&dates.includes(a.date)&&ACTIVE.includes(a.status));
+  affected.forEach(a=>notify(a.patientId,"schedule","Doctor schedule change",`${doc.name}'s availability changed for ${fmtDate(a.date)} — reception will contact you if your slot is affected.`));
+}
+function docModal(d){
+  const isNew=!d;
+  const sh=d?(d.shifts[1]||[540,780]):[540,780];
+  openModal(`<div class="m-head"><h3>${isNew?"Add doctor":"Edit doctor"}</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div>
+  <form data-form="doc" data-id="${d?d.id:""}">
+    <div class="grid2" style="gap:12px">
+      <div class="field"><label class="label" for="dcn">Full name</label><input id="dcn" class="input" name="name" value="${esc(d?.name||"")}" required></div>
+      <div class="field"><label class="label" for="dce">Email (login)</label><input id="dce" class="input" name="email" type="email" value="${esc(d?.email||"")}" ${isNew?"required":""} ${d?.userId?"disabled":""}></div>
+      <div class="field"><label class="label" for="dcd">Department</label><select id="dcd" class="input" name="deptId">${db.departments.map(x=>`<option value="${x.id}" ${d?.deptId===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>
+      <div class="field"><label class="label" for="dcq">Qualifications</label><input id="dcq" class="input" name="quals" value="${esc(d?.quals||"")}" required></div>
+      <div class="field"><label class="label" for="dcf">Consultation fee (₹)</label><input id="dcf" class="input" name="fee" type="number" min="0" value="${d?.fee??500}" required></div>
+      <div class="field"><label class="label" for="dcx">Experience (years)</label><input id="dcx" class="input" name="exp" type="number" min="0" value="${d?.exp??5}"></div>
+    </div>
+    <div class="field"><label class="label" for="dcb">Short bio</label><textarea id="dcb" class="input" name="bio">${esc(d?.bio||"")}</textarea></div>
+    ${isNew?`<div class="field"><label class="label" for="dcs">Weekly schedule preset</label><select id="dcs" class="input" name="preset">
+      <option value="am">Mon–Fri 9–1 & 2–5, Sat 9–1</option><option value="pm">Mon–Fri 10–2 & 4–7, Sat 9–1</option><option value="m">Mon–Fri 9–1 only</option></select></div>
+      
+<div class="field">
+  <label class="label" for="dcp">Doctor login password</label>
+  <input
+    id="dcp"
+    class="input"
+    name="password"
+    type="password"
+    minlength="8"
+    autocomplete="new-password"
+    placeholder="Enter password (minimum 8 characters)"
+    required
+  >
+  <p class="tiny">The doctor will use this password to sign in.</p>
+</div>
+`:""}
+    <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:6px">${isNew?"Create doctor":"Save changes"}</button>
+  </form>`);
+}
+
+/* ---------- 14. Change handlers ---------- */
+const CHANGES={
+  "hero-dept"(t){
+    const list=db.doctors.filter(d=>d.deptId===t.value);
+    const sel=$("#hdoc");sel.disabled=!list.length;
+    sel.innerHTML=list.length?`<option value="">Choose a doctor…</option>`+list.map(d=>`<option value="${d.id}">${esc(d.name)} · ${money(d.fee)}</option>`).join(""):`<option value="">No doctors listed</option>`;
+    $("#hero-slots").innerHTML=`<div class="empty" style="padding:22px"><i data-lucide="stethoscope"></i><div class="tiny">Now pick a doctor.</div></div>`;refreshIcons();
+  },
+  "hero-doc"(t){
+    const d=docById(t.value);
+    if(!d){$("#hero-slots").innerHTML="";return}
+    const na=nextAvailable(d);
+    $("#hero-slots").innerHTML=na?`
+      <div class="tiny" style="margin-bottom:8px">Next available — <strong style="color:var(--teal)">${fmtDate(na.date)}</strong></div>
+      <div style="display:grid;gap:8px">${na.slots.map(s2=>`<button class="opt" style="padding:10px 14px;justify-content:space-between" data-action="hero-slot" data-doc="${d.id}" data-date="${na.date}" data-slot="${s2.start}">
+        <strong style="font-size:14px">${fmt12(s2.start)} – ${fmt12(s2.end)}</strong><span class="link" style="font-size:13px">Book →</span></button>`).join("")}</div>`
+      :`<div class="empty" style="padding:20px"><div class="tiny">Fully booked within the ${getSettings().windowDays}-day window.</div></div>`;
+    refreshIcons();
+  },
+  "hero-slot":null,
+  "pubdoc-q"(t){location.hash="#/doctors?q="+encodeURIComponent(t.value)+(state.pubDept?"&dept="+state.pubDept:"");},
+  "pubdoc-dept"(t){state.pubDept=t.value;location.hash="#/doctors?dept="+t.value+(state.pubQ?"&q="+encodeURIComponent(state.pubQ):"");},
+  "wiz-type"(t){state.wiz.type=t.value;},
+  "wiz-reason"(t){state.wiz.reason=t.value;},
+  "wiz-dateip"(t){state.wiz.date=t.value;state.wiz.slot=null;render();},
+  "day-toggle"(t){const tr=t.closest("div");tr.querySelectorAll("input[type=time]").forEach(i=>i.disabled=!t.checked);},
+"wi-dept"(t) {
+  fillWiDocs(t.value);
+},  "wi-doc"(){$("#wslot").innerHTML=wiSlots();},
+  "wi-date"(){$("#wslot").innerHTML=wiSlots();},
+  "recsearch"(t){state.q=t.value;if(t.value.length<2&&t.value!==""){render();return}render();setTimeout(()=>{const i=$("#sq");i.focus();i.setSelectionRange(i.value.length,i.value.length)},0);},
+  "af-q"(t){state.af.q=t.value;state.apage=1;render();setTimeout(()=>{const i=$("#fq");i.focus();i.setSelectionRange(i.value.length,i.value.length)},0);},
+  "af-status"(t){state.af.status=t.value;state.apage=1;render();},
+  "af-dept"(t){state.af.deptId=t.value;state.apage=1;render();},
+  "af-doc"(t){state.af.doctorId=t.value;state.apage=1;render();},
+  "af-from"(t){state.af.from=t.value;state.apage=1;render();},
+  "af-to"(t){state.af.to=t.value;state.apage=1;render();},
+  "resch-date"(t){const a=apById(t.dataset.id);$("#rs").innerHTML=reschOptions(docById(a.doctorId),a);},
+  "resch-slot"(){},
+};
+
+
+function fillWiDocs(deptId) {
+  const doctorSelect = $("#wdoc");
+  const slotSelect = $("#wslot");
+
+  if (!doctorSelect || !slotSelect) return;
+
+  // Include existing local doctors.
+  const localDoctors = (db.doctors || []).map(d => ({
+    ...d,
+    id: d.id,
+    deptId: d.deptId
+  }));
+
+  // Include doctors loaded from MongoDB.
+  const mongoDoctors = (state.mongoPublicDoctors || []).map(d => ({
+    ...d,
+    id: d.frontendId || d._id,
+    deptId: d.departmentId,
+    quals: d.qualification || "General Medicine",
+    exp: d.experience ?? 0,
+    fee: d.fee || 0
+  }));
+
+  // Prefer MongoDB records when a doctor exists in both lists.
+  const combined = [
+    ...localDoctors.filter(local =>
+      !mongoDoctors.some(mongo =>
+        String(mongo.id) === String(local.id) ||
+        (local.frontendId &&
+          String(mongo.frontendId) === String(local.frontendId))
+      )
+    ),
+    ...mongoDoctors
+  ];
+
+  // Show only doctors from the selected department.
+  const list = combined.filter(
+    d => String(d.deptId) === String(deptId)
+  );
+
+  if (list.length === 0) {
+    doctorSelect.innerHTML =
+      `<option value="">No doctors available in this department</option>`;
+    doctorSelect.disabled = true;
+    slotSelect.innerHTML =
+      `<option value="">No time slots available</option>`;
+    slotSelect.disabled = true;
+    return;
+  }
+
+  doctorSelect.disabled = false;
+
+  doctorSelect.innerHTML = list.map(d =>
+    `<option value="${esc(d.id)}">${esc(d.name)}</option>`
+  ).join("");
+
+  slotSelect.disabled = false;
+  slotSelect.innerHTML = wiSlots();
+}
+function wiSlots(){
+  const t=todayStr(),ds=$("#wdate").value||t,doc=docById($("#wdoc").value);
+  if(!doc)return`<option value="">—</option>`;
+  const r=slotsFor(doc,ds);const av=(r.slots||[]).filter(x=>x.available);
+  return av.length?av.map(x=>`<option value="${x.start}">${fmt12(x.start)} – ${fmt12(x.end)}</option>`).join(""):`<option value="">No open slots — try another day</option>`;
+}
+
+/* ---------- 15. Forms ---------- */
+function setErr(form,key,msg){const e=form.querySelector(`[data-err="${key}"]`);if(e){e.textContent=msg;e.classList.add("show")}}
+function clearErrs(form){form.querySelectorAll(".err").forEach(e=>{e.classList.remove("show");e.textContent=""})}
+let loginFails=0;
+const FORMS = {
+  async register(f) {
+    clearErrs(f);
+
+    const name = f.name.value.trim();
+    const email = f.email.value.trim().toLowerCase();
+    const phone = f.phone.value.trim();
+    const password = f.password.value;
+    const confirm = f.confirm.value;
+
+    if (name.length < 2) {
+      setErr(f, "name", "Enter your full name");
+      return;
+    }
+
+
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErr(f, "email", "Enter a valid email address");
+      return;
+    }
+
+    if (phone.length < 10) {
+      setErr(f, "phone", "Enter a valid phone number");
+      return;
+    }
+
+    if (password.length < 8) {
+      setErr(f, "password", "Password must be at least 8 characters");
+      return;
+    }
+
+    if (password !== confirm) {
+      setErr(f, "confirm", "Passwords do not match");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast(data.message || data.error || "Registration failed", "err");
+        return;
+      }
+
+      toast("Account created successfully! Please sign in.");
+      location.hash = "#/login";
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast("Cannot connect to the server. Please check the backend.", "err");
+    }
+  },
+
+  
+async login(f) {
+  clearErrs(f);
+
+  const email = f.querySelector('[name="email"]').value.trim().toLowerCase();
+  const password = f.querySelector('[name="password"]').value;
+
+  if (!email.includes("@")) {
+    setErr(f, "email", "Enter a valid email");
+    return;
+  }
+
+  if (!password) {
+    setErr(f, "password", "Enter your password");
+    return;
+  }
+
+  try {
+const response = await fetch("http://localhost:5000/api/auth/login", {      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast(data.message || "Login failed. Check your email and password.", "err");
+      return;
+    }
+
+    if (!data.token || !data.user) {
+      toast("Login response is missing user or token data.", "err");
+      return;
+    }
+
+    const u = data.user;
+
+    let localUser = db.users.find(
+      x => x.email && x.email.toLowerCase() === u.email.toLowerCase()
+    );
+
+    if (!localUser) {
+      localUser = {
+        id: u.id,
+        role: u.role,
+        name: u.name,
+        email: u.email,
+        phone: u.phone || "",
+        patientNo: "P-" + String(u.id).slice(-6),
+        salt: "",
+        hash: ""
+      };
+      db.users.push(localUser);
+    } else {
+      Object.assign(localUser, {
+        id: u.id,
+        role: u.role,
+        name: u.name,
+        email: u.email,
+        phone: u.phone || ""
+      });
+    }
+
+    localStorage.setItem("authToken", data.token);
+    db.session = { uid: localUser.id, ts: Date.now() };
+    save();
+
+    toast(`Welcome back, ${u.name.split(" ")[0]}`);
+    location.hash = "#/app";
+    render();
+  } catch (error) {
+    console.error("Login request failed:", error);
+    toast("Cannot connect to the login server. Check that the backend is running.", "err");
+  }
+},
+async profile(f) {
+  clearErrs(f);
+
+  const name = f.querySelector('[name="name"]').value.trim();
+  const phone = f.querySelector('[name="phone"]').value.trim();
+  const ageValue = f.querySelector('[name="age"]').value;
+  const gender = f.querySelector('[name="gender"]').value;
+
+  if (name.length < 2) {
+    setErr(f, "name", "Enter your full name");
+    return;
+  }
+
+  const u = me();
+  if (!u) {
+    toast("Please sign in again.", "err");
+    location.hash = "#/login";
+    return;
+  }
+
+  Object.assign(u, {
+    name,
+    phone,
+    age: ageValue === "" ? "" : Number(ageValue),
+    gender
+  });
+
+  save();
+  toast("Profile updated successfully!");
+  render();
+},
+
+  
+
+async staff(f) {
+  clearErrs(f);
+
+  const name = f.querySelector('[name="name"]').value.trim();
+  const email = f.querySelector('[name="email"]').value.trim().toLowerCase();
+  const phone = f.querySelector('[name="phone"]').value.trim();
+  const password = f.querySelector('[name="password"]').value;
+
+  if (name.length < 2) {
+    toast("Enter the receptionist's full name.", "err");
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast("Enter a valid email address.", "err");
+    return;
+  }
+
+  if (password.length < 8) {
+    toast("Password must be at least 8 characters.", "err");
+    return;
+  }
+
+  if (db.users.some(u => (u.email || "").toLowerCase() === email)) {
+    toast("An account with this email already exists.", "err");
+    return;
+  }
+
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    toast("Admin login expired. Please sign in again.", "err");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/auth/receptionists",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          password
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast(data.message || "Could not create receptionist account.", "err");
+      return;
+    }
+
+    toast("Receptionist account created successfully!", "success");
+    closeModal();
+
+  } catch (error) {
+    console.error("Receptionist creation failed:", error);
+    toast("Cannot connect to the backend. Check that the server is running.", "err");
+  }
+},
+
+  async walkin(f) {
+    clearErrs(f);
+
+    const name = f.querySelector('[name="name"]').value.trim();
+    const phone = f.querySelector('[name="phone"]').value.trim();
+    const email = f.querySelector('[name="email"]').value.trim().toLowerCase();
+    const password = f.querySelector('[name="password"]').value;
+    const age = f.querySelector('[name="age"]').value;
+    const gender = f.querySelector('[name="gender"]').value;
+    const department = f.querySelector('[name="deptId"]').value;
+    const doctor = f.querySelector('[name="doctorId"]').value;
+    const appointmentDate = f.querySelector('[name="date"]').value;
+    const appointmentTime = f.querySelector('[name="start"]').value;
+    const checkin = f.querySelector('[name="checkin"]').checked;
+
+    
+if (!name || !phone || !email || !password ||
+    !department || !doctor || !appointmentDate || !appointmentTime) {
+  toast("Please complete all required fields and select an available time slot.", "err");
+  return;
+}
+
+if (password.length < 8) {
+  toast("Password must contain at least 8 characters.", "err");
+  return;
+}
+
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      toast("Your login has expired. Please sign in again.", "err");
+      location.hash = "#/login";
+      return;
+    }
+
+    const selectedDoctor = docById(doctor);
+
+    if (!selectedDoctor) {
+      toast("Please select a valid doctor.", "err");
+      return;
+    }
+
+    if (!selectedDoctor.userId) {
+      toast("This doctor has no linked backend account. Select a doctor registered in the backend.", "err");
+      return;
+    }
+
+    const button = f.querySelector('button[type="submit"]');
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Registering...";
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/appointments/walkin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+       
+body: JSON.stringify({
+  name,
+  phone,
+  email,
+  password,
+  age,
+  gender,
+  department,
+  doctor,
+  appointmentDate,
+  appointmentTime,
+  checkin
+})
+
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast(data.message || "Could not register the walk-in patient.", "err");
+        return;
+      }
+
+      const patient = data.patient;
+      const doctorForNotification = docById(doctor);
+
+if (doctorForNotification?.userId) {
+  notify(
+    doctorForNotification.userId,
+    "booking",
+    "New walk-in appointment",
+    `${patient?.name || name} · ${appointmentDate} at ${appointmentTime}`
+  );
+}
+
+      if (patient) {
+        const existingUser = db.users.find(u => u.id === patient.id);
+
+        if (!existingUser) {
+          db.users.push({
+            id: patient.id,
+            name: patient.name,
+            email: patient.email,
+            phone: patient.phone || phone,
+            role: "patient",
+            patientNo: "P-" + String(patient.id).slice(-6),
+            salt: "",
+            hash: "",
+            age: age === "" ? "" : Number(age),
+            gender
+          });
+        }
+      }
+
+      save();
+
+toast(
+  `Patient ${patient?.name || name} registered successfully with email ${patient?.email || email}.`,
+  "success"
+);
+
+render();
+
+    } catch (error) {
+      console.error("Walk-in registration failed:", error);
+      toast("Could not connect to the backend. Check that the server is running.", "err");
+    } finally {
+      if (button) button.disabled = false;
+    }
+  },
+
+
+async doc(f) {
+  clearErrs(f);
+
+  const name = f.querySelector('[name="name"]').value.trim();
+  const email = f.querySelector('[name="email"]').value.trim().toLowerCase();
+  const password = f.querySelector('[name="password"]')?.value || "";
+  const deptId = f.querySelector('[name="deptId"]').value;
+  const quals = f.querySelector('[name="quals"]').value.trim();
+  const fee = Number(f.querySelector('[name="fee"]').value);
+  const exp = Number(f.querySelector('[name="exp"]').value || 0);
+  const bio = f.querySelector('[name="bio"]').value.trim();
+  const preset = f.querySelector('[name="preset"]')?.value || "am";
+  const doctorId = f.dataset.id;
+  const isNew = !doctorId;
+  const frontendDoctorId = doctorId || uid();
+
+  if (name.length < 2) {
+    toast("Enter the doctor's full name.", "err");
+    return;
+  }
+
+  if (isNew && !email) {
+    toast("Enter the doctor's login email.", "err");
+    return;
+  }
+
+  if (!quals) {
+    toast("Enter the doctor's qualifications.", "err");
+    return;
+  }
+
+  if (!Number.isFinite(fee) || fee < 0 ||
+      !Number.isFinite(exp) || exp < 0) {
+    toast("Enter a valid fee and experience.", "err");
+    return;
+  }
+
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    toast("Admin login expired. Please sign in again.", "err");
+    return;
+  }
+  try {
+    let userId = "";
+    let doctorEmail = email;
+         
+    const oldDoctor = isNew ? null : db.doctors.find(d => d.id === doctorId);
+
+    let shifts;
+
+    if (oldDoctor) {
+      shifts = oldDoctor.shifts;
+    } else {
+      const AM = [[540, 780], [840, 1020]];
+      const EV = [[600, 840], [960, 1140]];
+      const MO = [[540, 780]];
+
+      const weekly =
+        preset === "pm" ? EV :
+        preset === "m" ? MO : AM;
+
+      shifts = {};
+      for (let day = 1; day <= 6; day++) {
+        shifts[day] = day === 6 ? [[540, 780]] : weekly;
+      }
+      shifts[0] = [];
+    }
+
+    if (isNew) {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/doctors",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            
+  name,
+  email,
+  phone: "",
+  password: password,
+  frontendId: frontendDoctorId,
+  departmentId: deptId,
+  qualification: quals,
+  experience: exp,
+  fee,
+  bio,
+  shifts,
+  leave: []
+})
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast(data.message || "Could not create doctor account.", "err");
+        return;
+      }
+
+      userId = data.user.id;
+      doctorEmail = data.user.email;
+    } else {
+      const existing = db.doctors.find(d => d.id === doctorId);
+
+      if (!existing) {
+        toast("Doctor profile not found. Refresh and try again.", "err");
+        return;
+      }
+
+      userId = existing.userId;
+      doctorEmail = existing.email;
+    }
+  
+    const doctor = {
+      ...(oldDoctor || {}),
+      id: frontendDoctorId,
+      userId,
+      name,
+      email: doctorEmail,
+      deptId,
+      quals,
+      fee,
+      exp,
+      bio,
+      shifts,
+      leave: oldDoctor?.leave || [],
+      seed: oldDoctor?.seed ?? 0
+    };
+
+    if (oldDoctor) {
+      const index = db.doctors.findIndex(d => d.id === doctorId);
+      db.doctors[index] = doctor;
+    } else {
+      db.doctors.push(doctor);
+    }
+
+    let localUser = db.users.find(u => u.id === userId);
+
+    if (!localUser) {
+      localUser = {
+        id: userId,
+        role: "doctor",
+        name,
+        email: doctorEmail,
+        phone: "",
+        salt: "",
+        hash: ""
+      };
+      db.users.push(localUser);
+    } else {
+      Object.assign(localUser, {
+        name,
+        email: doctorEmail,
+        role: "doctor"
+      });
+    }
+
+    audit(isNew ? "doctor.create" : "doctor.update", name, me().name);
+    save();
+    closeModal();
+    toast(isNew
+      ? "Doctor account and profile created successfully!"
+      : "Doctor profile updated successfully!");
+    render();
+
+  } catch (error) {
+    console.error("Doctor save failed:", error);
+    toast("Could not save the doctor. Check the backend and try again.", "err");
+  }
+},
+
+  async hours(f) {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      toast("Please log in again.", "err");
+      return;
+    }
+
+    const shifts = {};
+
+    // Sunday is always off.
+    shifts[0] = [];
+
+    for (let day = 1; day <= 6; day++) {
+      const enabled = f.querySelector(`[name="on${day}"]`).checked;
+
+      if (!enabled) {
+        shifts[day] = [];
+        continue;
+      }
+
+      const start = f.querySelector(`[name="s${day}"]`).value;
+      const end = f.querySelector(`[name="e${day}"]`).value;
+
+      if (!start || !end) {
+        toast(`Please enter both times for ${DAYS[day]}.`, "err");
+        return;
+      }
+
+      const toMinutes = value => {
+        const [hours, minutes] = value.split(":").map(Number);
+        return hours * 60 + minutes;
+      };
+
+      const startMinutes = toMinutes(start);
+      const endMinutes = toMinutes(end);
+
+      if (startMinutes >= endMinutes) {
+        toast(`End time must be after start time on ${DAYS[day]}.`, "err");
+        return;
+      }
+
+      shifts[day] = [[startMinutes, endMinutes]];
+    }
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/doctors/me/shifts",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify({ shifts })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast(data.message || "Could not save working hours.", "err");
+        return;
+      }
+
+      // Update the loaded MongoDB profile immediately.
+      if (data.doctor) {
+        state.mongoDoctorProfile = data.doctor;
+        state.mongoDoctorProfileLoaded = true;
+      }
+
+      // Update the local doctor record too, if one exists.
+      const u = me();
+      const doc = u ? docFor(u) : null;
+
+      if (doc) {
+        doc.shifts = shifts;
+
+        if (doc.mongoId || doc._id) {
+          state.mongoDoctorProfile = {
+            ...(state.mongoDoctorProfile || {}),
+            shifts
+          };
+        } else {
+          const localDoc = db.doctors.find(d =>
+            d.id === doc.id
+          );
+
+          if (localDoc) {
+            localDoc.shifts = shifts;
+            save();
+          }
+        }
+      }
+
+      toast("Weekly working hours saved successfully!");
+      render();
+
+    } catch (error) {
+      console.error("Working hours save failed:", error);
+      toast("Could not save working hours. Check the backend.", "err");
+    }
+  },
+};
+
+/* ---------- 16. In-app system self-check (mirrors the Vitest suites) ---------- */
+function runSelfCheck(){
+  const snap=JSON.parse(JSON.stringify(db));
+  const results=[];const t=(name,fn)=>{try{fn();results.push([name,true,""])}catch(e){results.push([name,false,String(e)])}};
+  const doc=db.doctors[0],pat=db.users.find(u=>u.role==="patient");
+  const probe=todayStr()===addDaysStr(todayStr(),0)?addDaysStr(todayStr(),1):todayStr(); // always a future day
+  const day=probe;let ds=day;for(let i=0;i<20;i++){const r=slotsFor(doc,ds);if(r.slots&&r.slots.some(s2=>s2.available)){ds;break}ds=addDaysStr(ds,1)}
+  let r=slotsFor(doc,ds);
+  t("Slot engine returns bookable slots",()=>{if(!r.slots||!r.slots.some(s2=>s2.available))throw"no open slot found"});
+  const free=r.slots.find(s2=>s2.available);
+  let a1;
+  t("Booking a free slot succeeds",()=>{a1=createBooking({patientId:pat.id,doctorId:doc.id,date:ds,start:free.start,source:"online",actor:"test"});if(!a1.ref.startsWith("MC-"))throw"bad ref"});
+  t("Double-booking the same slot is rejected",()=>{try{createBooking({patientId:pat.id,doctorId:doc.id,date:ds,start:free.start,source:"online",actor:"test"});throw"booking was allowed"}catch(e){if(e==="booking was allowed")throw e}});
+  t("Booked slot disappears from availability",()=>{const rr=slotsFor(doc,ds);if(rr.slots.find(s2=>s2.start===free.start).available)throw"slot still open"});
+  t("Weekly off returns closed",()=>{const off=db.doctors.find(d=>Object.values(d.shifts)[0].length===0)||db.doctors.find(d=>!d.shifts[0].length&&d.shifts[0]!==undefined);const sundayD=db.doctors.find(d=>!d.shifts[1].length===false&&d.shifts[2]===undefined);const r2=slotsFor(db.doctors[0],addDaysStr(todayStr(),(7-dowOf(todayStr()))%7||7));if(!(r2.closed||r2.slots))throw"unexpected"});
+  const leaveD=addDaysStr(todayStr(),3);
+  t("Doctor leave blocks all slots",()=>{db.doctors[1].leave.push(leaveD);const rr=slotsFor(db.doctors[1],leaveD);if(!rr.closed)throw"leave not honoured"});
+  t("Cancellation releases the slot",()=>{cancelAppt(a1.id,"test");const rr=slotsFor(doc,ds);if(!rr.slots.find(s2=>s2.start===free.start).available)throw"slot not released"});
+  t("Queue numbers increment per doctor",()=>{const qs=[1,2].map(()=>{const rr=slotsFor(doc,todayStr());if(rr.closed||!rr.slots)throw"doctor closed today";const f2=rr.slots.find(s2=>s2.available);if(!f2)throw"no free slot today";const a2=createBooking({patientId:pat.id,doctorId:doc.id,date:todayStr(),start:f2.start,source:"walk_in",actor:"test"});checkIn(a2.id,"test");return a2.queue});if(!(qs[1]>qs[0]))throw"queue did not increment"});
+  t("Wrong password is rejected",()=>{const u=db.users.find(x=>x.email==="patient@medicare.dev");if(u.hash===hashPwSync("WrongPass",u.salt))throw"hash matched"});
+  t("Patient ownership check on confirmation view",()=>{const other=db.appointments.find(a=>a.patientId!==pat.id);if(!other)throw"no cross appt";const me2=db.users.find(u=>u.role==="patient");const allowed=other.patientId===me2.id;if(allowed)throw"leak"});
+  t("Booking outside the window is rejected",()=>{try{createBooking({patientId:pat.id,doctorId:doc.id,date:addDaysStr(todayStr(),db.settings.windowDays+5),start:"10:00",source:"online",actor:"test"});throw"allowed"}catch(e){if(e==="allowed")throw e}});
+  db=JSON.parse(JSON.stringify(snap));save();
+  return results;
+}
+ACTIONS["selfcheck"]=()=>{
+  const res=runSelfCheck();
+  const pass=res.filter(r=>r[1]).length;
+  openModal(`<div class="m-head"><h3>System self-check</h3><button class="x" data-action="modal-close"><i data-lucide="x"></i></button></div>
+    <p class="tiny" style="margin-bottom:14px">Runs the core booking-engine invariants against a throwaway snapshot, then restores your data untouched. ${pass}/${res.length} passed.</p>
+    ${res.map(r=>`<div class="checkline"><i data-lucide="${r[1]?"check-circle-2":"x-circle"}" style="width:15px;height:15px;color:${r[1]?"var(--green)":"var(--red)"}"></i><span>${esc(r[0])}${r[1]?"":` — <span style="color:var(--red)">${esc(r[2])}</span>`}</span></div>`).join("")}`);
+};
+CHANGES["selfcheck"]=null;
+if(true){/* add self-check button into admin settings view */}
+const _aSettings=aSettings;aSettings=function(){
+  return _aSettings()+`<button class="btn btn-g" data-action="selfcheck" style="margin-top:16px"><i data-lucide="flask-conical"></i>Run system self-check</button>`;
+};
+
+/* restore theme */
+document.documentElement.dataset.theme=localStorage.getItem("mc.theme")||"";
+/* Global click handler for dashboard actions */
+document.addEventListener("click", function (e) {
+  const button = e.target.closest("[data-action]");
+  if (!button) return;
+
+  const action = button.dataset.action;
+
+  if (action === "side") {
+    state.sideOpen = !state.sideOpen;
+    render();
+    return;
+  }
+
+  if (action === "modal-close") {
+    closeModal();
+    return;
+  }
+
+  
+if (action === "logout") {
+  e.preventDefault();
+
+  if (typeof ACTIONS !== "undefined" &&
+      typeof ACTIONS.logout === "function") {
+    ACTIONS.logout(button);
+  } else {
+    console.error("ACTIONS.logout function not found");
+  }
+
+  return;
+}
+
+
+  if (typeof ACTIONS !== "undefined" && typeof ACTIONS[action] === "function") {
+    ACTIONS[action](button);
+  }
+});
+
+/* Update walk-in doctors when department changes */
+document.addEventListener("change", function (e) {
+  if (e.target && e.target.matches('[data-change="wi-dept"]')) {
+    fillWiDocs(e.target.value);
+  }
+
+  if (e.target && e.target.matches('[data-change="wi-doc"]')) {
+    const slotSelect = document.querySelector("#wslot");
+    if (slotSelect) {
+      slotSelect.innerHTML = wiSlots();
+    }
+  }
+
+  if (e.target && e.target.matches('[data-change="wi-date"]')) {
+    const slotSelect = document.querySelector("#wslot");
+    if (slotSelect) {
+      slotSelect.innerHTML = wiSlots();
+    }
+  }
+});
+
+
+/* Handle login, registration, and other forms */
+document.addEventListener("submit", function (e) {
+  const form = e.target.closest("form[data-form]");
+  if (!form) return;
+
+  e.preventDefault();
+
+  const formName = form.dataset.form;
+  const handler = FORMS[formName];
+
+  if (typeof handler === "function") {
+    handler(form);
+  } else {
+    console.error("Form handler not found:", formName);
+  }
+});
+
+</script>
+</body>
+</html>
